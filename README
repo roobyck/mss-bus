@@ -1,0 +1,3 @@
+mss-bus is a simple master/slave serial bus protocol implementation for
+RS232/RS485. We intend it just to work, don't expect miracles. It is
+developed only for Linux.
