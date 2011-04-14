@@ -34,19 +34,19 @@ Zaimplementowaæ sieæ typu master-slave wykorzystuj±c jako warstwê fizyczn±
 ³±cze RS485. Powinny byæ dostêpne nastêpuj±ce us³ugi warstwy ³±cza danych:
 
 \begin{itemize}
-    \item Send Data with Acknowledge (SDA);
-    \item Send Data with No Acknowledge (SDN) -- us³uga typu broadcast.
+  \item Send Data with Acknowledge (SDA);
+  \item Send Data with No Acknowledge (SDN) -- us³uga typu broadcast.
 \end{itemize}
 
 \paragraph{Za³o¿enia}\
 
 \begin{itemize}
-    \item ka¿dy wêze³ sieci posiada unikalny identyfikator (liczba 8-bitowa),
-    \item maksymalna liczba wêz³ów w sieci wynosi $64$,
-    \item w sieci znajduje siê jeden wêze³ (\emph{master}) zarz±dzaj±cy
-          dostêpem do ³±cza oraz wiele wêz³ów podrzêdnych (\emph{slave}),
-    \item wêze³ zarz±dzaj±cy (\emph{master}) zna adresy wszystkich wêz³ów
-          pod³±czonych do sieci (ale niektóre z nich mog± byæ wy³±czone).
+  \item ka¿dy wêze³ sieci posiada unikalny identyfikator (liczba 8-bitowa),
+  \item maksymalna liczba wêz³ów w sieci wynosi $64$,
+  \item w sieci znajduje siê jeden wêze³ (\emph{master}) zarz±dzaj±cy
+        dostêpem do ³±cza oraz wiele wêz³ów podrzêdnych (\emph{slave}),
+  \item wêze³ zarz±dzaj±cy (\emph{master}) zna adresy wszystkich wêz³ów
+        pod³±czonych do sieci (ale niektóre z nich mog± byæ wy³±czone).
 \end{itemize}
 
 Szczególn± uwagê nale¿y zwróciæ na obs³ugê b³êdów (nale¿y wprowadziæ
@@ -59,134 +59,191 @@ W trakcie analizy tre¶ci zadania dostrzegli¶my potrzebê wprowadzenia pewnych
 dodatkowych za³o¿eñ/ograniczeñ precyzuj±cych implementowane zagadnienie:
 
 \begin{itemize}
-    \item rozwi±zanie \textbf{nie musi} byæ optymalne -- naszym celem nie jest
-          stworzenie najbardziej wydajnej sieci, lecz sieci \emph{po prostu
-          dzia³aj±cej};
-    \item nie implementujemy procesu rejestracji maszyn, tj. ka¿dy host typu
-          \emph{slave} posiada przypisany na sta³e adres, o którym wiedzê
-          posiada \emph{master};
-    \item dostarczone funkcje obs³uguj±ce wysy³anie/odbieranie danych na/z
-          szyny opieraj± siê na komunikacji znakowej, tote¿ nie ma sensu ¿mudne
-          budowanie nag³ówków ramek z pojedynczych bitów; operowaæ bêdziemy
-          \emph{zawsze} na bajtach;
-    \item jako ¿e pracujemy w warstwie sieciowej nie musimy dbaæ o poprawn±
-          interpretacjê danych zawartych w pakietach, naszym zadaniem jest
-          tylko i wy³±cznie zapewnienie poprawnego przesy³u pakietów, sk³adanie
-          tych¿e w sensowne komunikaty le¿y w gestii oprogramowania warstw
-          wy¿szych;
-    \item konieczna jest weryfikacja poprawno¶ci przesy³anych danych,
-          w szczególno¶ci nale¿y dodaæ do nag³ówka sumê kontroln± pakietu
-          (\emph{CRC});
-    \item \emph{master} jest wy³±cznie wêz³em kontroluj±cym szynê -- nie
-          odbiera ani nie wysy³a ¿adnych pakietów danych.
+  \item rozwi±zanie \textbf{nie musi} byæ optymalne -- naszym celem nie jest
+        stworzenie najbardziej wydajnej sieci, lecz sieci \emph{po prostu
+        dzia³aj±cej};
+  \item nie implementujemy procesu rejestracji maszyn, tj. ka¿dy host typu
+        \emph{slave} posiada przypisany na sta³e adres, o którym wiedzê
+        posiada \emph{master};
+  \item dostarczone funkcje obs³uguj±ce wysy³anie/odbieranie danych na/z
+        szyny opieraj± siê na komunikacji znakowej, tote¿ nie ma sensu ¿mudne
+        budowanie nag³ówków ramek z pojedynczych bitów; operowaæ bêdziemy
+        \emph{zawsze} na bajtach;
+  \item jako ¿e pracujemy w warstwie sieciowej nie musimy dbaæ o poprawn±
+        interpretacjê danych zawartych w pakietach, naszym zadaniem jest
+        tylko i wy³±cznie zapewnienie poprawnego przesy³u pakietów, sk³adanie
+        tych¿e w sensowne komunikaty le¿y w gestii oprogramowania warstw
+        wy¿szych;
+  \item konieczna jest weryfikacja poprawno¶ci przesy³anych danych,
+        w szczególno¶ci nale¿y dodaæ do nag³ówka sumê kontroln± pakietu
+        (\emph{CRC});
+  \item \emph{master} jest wy³±cznie wêz³em kontroluj±cym szynê -- nie
+        odbiera ani nie wysy³a ¿adnych pakietów danych.
 \end{itemize}
 
-\section{Algorytmy do zaimplementowania}
+\section{Logika protoko³u}
 
 \paragraph{Przydzia³ ³±cza}\
 
-Koncepcja algorytmu przydzia³u ³±cza przez maszynê \emph{master} opiera siê na
-znanym z zagadnienia szeregowania procesów algorytmie \emph{Round Robin}.
-\emph{Master} odpytuje kolejno wszystkie maszyny, wysy³aj±c pakiety
-\texttt{BUS} i czekaj±c na odpowied¼ (przy czym mo¿liwy jest timeout
-w sytuacji, gdy host jest wy³±czony). Gdy jedna z maszyn zg³asza chêæ wys³ania
-pakietu danych, master wysy³a do tej maszyny pakiet \texttt{RDY} (tj. wystawia
-go na szynê z odpowiednim adresem), a nastêpnie przydziela jej potrzebne okno
-czasowe, wynosz±ce co najmniej: $t_{transmisji\ pakietu} + t_{transmisji\
-odpowiedzi}$. Po up³yniêciu tego czasu \emph{master} wznawia odpytywanie
-wêz³ów od nastêpnika wêz³a, który w³a¶nie przes³a³ pakiet (tj. je¶li w tablicy
-hostów \emph{mastera} host ¿±daj±cy dostêpu mia³ indeks $k$, to odpytywanie
-jest wznawiane od hosta $k+1$). 
+Przydzia³ ³±cza przez maszynê \emph{master} opiera siê na algorytmie
+\emph{Round Robin}. Wêze³ zarz±dzaj±cy odpytuje kolejno wszystkie maszyny
+\emph{slave}, wysy³aj±c do nich pakiet \texttt{BUS}. Je¶li dana maszyna chce
+rozpocz±æ transmisjê odpowiada pakietem \texttt{REQ} i rozpoczyna transmisjê.
+W ramach pojedynczej transmisji mo¿na wys³aæ do 10 bajtów danych (w pakiecie
+\texttt{DAT}), po czym w przypadku transmisji z potwierdzeniem nastêpuje
+odpowied¼ odbiorcy pakietem \texttt{ACK}. Nastêpnie \emph{master} ponownie
+przejmuje szynê i kontynuuje odpytywanie od nastêpnej maszyny.
 
-\paragraph{Przesy³ danych}\
+\paragraph{Przesy³ danych (z punktu widzenia u¿ytkownika)}\
 
-\emph{Slave}, który chce przes³aæ dane, musi oczekiwaæ na pakiety \texttt{BUS}
-pochodz±ce od \emph{mastera} i w momencie otrzymania pakietu \textbf{ze swoim
-adresem} poprawnie nañ odpowiedzieæ, wysy³aj±c na szynê pakiet \texttt{REQ} --
-warto zwróciæ uwagê, ¿e pakiet ten nie musi posiadaæ adresu wêz³a ¿±daj±cego
-dostêpu, bowiem \emph{master} wie, którego \emph{slave'a} w³a¶nie odpytuje.
-Po przydzieleniu ³±cza host wysy³aj±cy wystawia na szynê pakiet, który chcia³
-wys³aæ, po czym czeka na potwierdzenie (\texttt{ACK}) od hosta odbieraj±cego.
-W przypadku braku potwierdzenia w nastêpnym cyklu szyny (a w³a¶ciwie
-\emph{mastera}) bêdzie musia³ dokonaæ retransmisji. Takie podej¶cie rozwi±zuje
-od razu dwa problemy: problem b³êdnego przesy³u oraz wy³±czenie hosta
-docelowego (wtedy równie¿ potrzebna jest retransmisja, a host wy³±czony nie
-prze¶le \texttt{ACK}). W sytuacji, gdy host wysy³aj±cy zostanie nagle
-wy³±czony, sprawê rozwi±zuje timeout w wê¼le \emph{master}. 
+Maszyna \emph{slave} chc±c przes³aæ dane nas³uchuje na szynie czekaj±c na
+swoj± kolejkê -- tj. czeka na pakiet \texttt{BUS} adresowany do niej. Po
+otrzymaniu takowego odpowiada pakietem \texttt{REQ} i mo¿e rozpocz±æ
+transmisjê, czyli wys³aæ \textbf{jeden} pakiet \texttt{DAT} o zmiennej
+d³ugo¶ci pola danych od 1 do 10 bajtów. Je¶li pakiet nie by³ wys³any na adres
+\emph{broadcast'owy} czeka jeszcze na otrzymanie potwierdzenia i zwalnia
+szynê. W przypadku, gdy zosta³y jeszcze dane do wys³ania czeka na ponowny
+przydzia³ i po jego otrzymaniu powtarza procedurê.
+
+Obowi±zek reakcji na brak potwierdzenia le¿y po stronie aplikacji, a nie
+protoko³u -- choæ oczywi¶cie aplikacja zostanie poinformowana o zaistnia³ej
+sytuacji.
+
+\paragraph{Kwestia \emph{timeout'ów}}\
+
+Istniej± dwie sytuacje, w których konieczne jest wprowadzenie czasowego
+przeterminowania odpowiedzi na pakiety, aby zapobiec zawieszeniu dzia³ania
+protoko³u z powodu nieobecno¶ci której¶ ze stacji:
+\begin{itemize}
+  \item odpowied¼ \emph{slave'a} na pakiet \texttt{REQ},
+  \item potwierdzenie \texttt{ACK} odebrania danych przez \emph{slave'a}
+        (odbiorcê).
+\end{itemize}
+Aby upro¶ciæ tworzenie protoko³u zamiast mierzyæ rzeczywisty up³yw czasu
+uznali¶my, ¿e wystarczaj±cym kryterium bêdzie pojawienie siê bajtu
+oznaczaj±cego pocz±tek ramki w pewnej liczbie odebranych bajtów po rozpoczêciu
+oczekiwania. W obu wymienionych powy¿ej przypadkach uznajemy, ¿e je¶li
+w pierwszych 5 bajtach nie pojawi siê znacznik pocz±tku poprawnej ramki,
+nas³uchuj±cy mo¿e uznaæ, i¿ odpowiedzi nie by³o.
 
 \paragraph{Weryfikacja poprawno¶ci datagramów}\
 
-Do weryfikacji poprawno¶ci przesy³anych przez hosty pakietów danych
-(\texttt{DAT}) pos³u¿y \emph{cykliczny kod nadmiarowy} w wersji \emph{CRC16}.
-Kod funkcji obliczaj±cej sumê kontroln± zosta³ dostarczony przez prowadz±cych.
-Weryfikowane bêd± wy³±cznie ramki danych. Weryfikacja pakietów \texttt{BUS}
-czy \texttt{REQ} dodatkowo wyd³u¿y³aby cykl szyny i tak naprawdê nie jest do
-niczego potrzebna -- ewentualne b³êdy w transmisji nie s± krytyczne.
-Weryfikacja broadcastu nie ma sensu, gdy¿ powtórne przes³anie danych
-powodowa³oby otrzymywanie przez niektóre wêz³y zwielokrotnionych pakietów.
+Ka¿da wysy³ana ramka jest opatrzona \emph{cyklicznym kodem nadmiarowym}
+\emph{CRC16}. Kod funkcji obliczaj±cej sumê kontroln± zosta³ dostarczony
+przez prowadz±cych.
 
 \section{Formaty ramek}
 
-Projektowane rozwi±zanie wykorzystywaæ bêdzie nastêpuj±ce typy ramek: 
+Ogólny format ramek wykorzystywanych przez protokó³ wygl±da nastêpuj±co:
+\begin{displaymath}
+  \underbrace{\hbox{<<znacznik pocz±tku ramki>>}}_{1B}
+  \underbrace{\hbox{<<etykieta typu>>}}_{1B}
+  \underbrace{\hbox{<<zale¿ne od typu>>}}_{0-17B}
+  \underbrace{\hbox{<<CRC16>>}}_{2B}
+\end{displaymath}
 
+\emph{Znacznik pocz±tku ramki} s³u¿y ³atwiejszej identyfikacji ramek
+w strumieniu bajtów i jest wspólny dla wszystkich typów (wprowadzamy dla niego
+oznaczenie \texttt{BOF} -- \emph{begin of frame}). W protokole wystêpuj±
+cztery typy ramek (w nawiasach podane jest jaki rodzaj stacji mo¿e dan± ramkê
+wys³aæ, a jaki odebraæ):
 \begin{itemize}
-    \item BUS [01h] -- zapytanie o zainteresowanie szyn± (1 bajt adresu hosta
-                       pytanego);
-    \item REQ [02h] -- ¿±danie dostêpu do szyny (bez dodatkowych nag³ówków --
-                       master wie, kogo pyta³);
-    \item RDY [03h] -- przydzia³ szyny (1 bajt adresu hosta);
-    \item DAT [04h] -- pakiet danych (suma CRC, 1 bajt adresu nadawcy, 1 bajt
-                       adresu odbiorcy, 1 bajt na rozmiar wiadomo¶ci w bajtach,
-                       sama wiadomo¶æ);
-    \item ACK [05h] -- potwierdzenie otrzymania danych (bez dodatkowych
-                       parametrów - w danych momencie na szynie oczekuje siê na
-                       jeden i tylko jeden pakiet \texttt{ACK});
-    \item BRD [06h] -- broadcast, nie podlega weryfikacji (1 bajt na rozmiar
-                       wiadomo¶ci + wiadomo¶æ).
+  \item BUS (\emph{master} $\rightarrow$ \emph{slave}) -- zapytanie
+        o zainteresowanie szyn±
+    \begin{displaymath}
+      \underbrace{\hbox{<<BOF>>}}_{1B}
+      \underbrace{01h}_{1B}
+      \underbrace{\hbox{<<adres \emph{slave'a}>>}}_{1B}
+      \underbrace{\hbox{<<CRC16>>}}_{2B}
+    \end{displaymath}
+  \item REQ (\emph{slave} $\rightarrow$ \emph{master}) -- ¿±danie dostêpu do
+        szyny
+    \begin{displaymath}
+      \underbrace{\hbox{<<BOF>>}}_{1B}
+      \underbrace{02h}_{1B}
+      \underbrace{\hbox{<<CRC16>>}}_{2B}
+    \end{displaymath}
+    Adres stacji ¿±daj±cej nie jest tu konieczny \emph{master} wie kogo pyta³.
+  \item DAT (\emph{slave} $\rightarrow$ \emph{slave}) -- pakiet danych
+    \begin{displaymath}
+      \underbrace{\hbox{<<BOF>>}}_{1B}
+      \underbrace{04h}_{1B}
+      \underbrace{\hbox{<<adres odbiorcy>>}}_{1B}
+      \underbrace{\hbox{<<adres nadawcy>>}}_{1B}
+      \underbrace{\hbox{<<d³ugo¶æ>>}}_{1B}
+      \underbrace{\hbox{<<dane>>}}_{1-10B}
+      \underbrace{\hbox{<<CRC16>>}}_{2B}
+    \end{displaymath}
+    Pole \emph{d³ugo¶æ} informuje od d³ugo¶ci pola danych. Adres nadawcy
+    $0xFF$ oznacza transmisjê \emph{broadcast'ow±} bez potwierdzenia.
+  \item ACK (\emph{slave} $\rightarrow$ \emph{slave}) -- potwierdzenie
+        otrzymania danych
+    \begin{displaymath}
+      \underbrace{\hbox{<<BOF>>}}_{1B}
+      \underbrace{08h}_{1B}
+      \underbrace{\hbox{<<CRC16>>}}_{2B}
+    \end{displaymath}
+    Adres nie jest konieczny, nadawca wie do kogo wysy³a³ i nie s± mo¿liwe
+    wspó³bie¿ne transmisje, wiêc pakiet zawsze odnosi siê do aktualnie
+    trwaj±cej.
 \end{itemize}
-Uwaga: pierwszy bajt nag³ówka ka¿dej ramki zawieraæ bêdzie jej typ (wed³ug
-podanych w nawiasach kwadratowych kodów).
 
 \section{Architektura rozwi±zania}
 
+\paragraph{Funkcje protoko³u}\
+
+Protokó³ komunikacji bêdzie udostêpnia³ kilka funkcji pozwalaj±cych na jego
+u¿ytkowanie z poziomu aplikacji.
+\begin{itemize}
+  \item \texttt{mss\_run\_master(\textnormal{<<struktura sieci>>})} : funkcja
+        wywo³ywana tylko i wy³±cznie w wê¼le \emph{master} i realizuj±ca
+        zaprojektowany algorytm przydzia³u ³±cza, \emph{master} zna adresy
+        wszystkich stacji w sieci, st±d argument je opisuj±cy;
+  \item \texttt{mss\_slave\_send(\textnormal{<<adres>>}, \textnormal{<<dane>>})}
+        : wywo³ywana w wê¼le \emph{slave} celem transmisji danych do innej
+        (lub innych) stacji, funkcja jest blokuj±ca -- do momentu zakoñczenia
+        transmisji, warto¶æ zwracana informuje o powodzeniu operacji;
+  \item \texttt{mss\_slave\_recv(\textnormal{<<bufor>>})} : po wywo³aniu tej
+        funkcji wêze³ \emph{slave} zaczyna nas³uchiwaæ na szynie transmisji
+        adresowanej do niego, odbiera dane do wskazanego bufora odsy³aj±c
+        w razie potrzeby potwierdzenie \texttt{ACK} do nadawcy.
+\end{itemize}
+Funkcja wysy³aj±ca zawiera w sobie ca³± logikê dzia³ania protoko³u --
+oczekiwanie na pakiet \texttt{BUS}, odpowied¼ pakietem \texttt{REQ}
+i transmisjê. W przypadku b³êdu lub braku potwierdzenia nie próbuje ponownie
+wys³aæ danych -- le¿y to w gestii aplikacji.
+
+\paragraph{Aplikacje}\
+
 Przygotowaæ nale¿y dwa programy w jêzyku C: program dla wêz³a \emph{master}
-oraz dla poszczególnych wêz³ów \emph{slave}:
+oraz dla wêz³a \emph{slave}:
 \begin{itemize}
     \item \texttt{mss-bus-master} to program dzia³aj±cy na wê¼le
-          \emph{master}. Utrzymuje on statyczn± tablicê adresów hostów
-          \emph{slave} i kontroluje dostêp do szyny poprzez cykliczne (w
-          jednym w±tku) wysy³anie pakietów \texttt{BUS} do kolejnych maszyn
-          i nastêpnie oczekiwanie na odpowied¼ (\texttt{REQ}) b±d¼ (z d³u¿szym
-          timeoutem) na zakoñczenie transmisji (po wys³aniu do wêz³a
-          nadaj±cego pakietu \texttt{RDY}).
-    \item \texttt{mss-bus-slave} to program "kliencki", który bêdzie dzia³a³
-          dwóch trybach (które mog± siê przeplataæ):
+          \emph{master}, utrzymuje on statyczn± tablicê adresów hostów
+          \emph{slave} i kontroluje dostêp do szyny, kod programu sprowadza
+          siê w zasadzie do wywo³ania funkcji \texttt{mss\_run\_master()};
+    \item \texttt{mss-bus-slave} to program u¿ytkownika, który bêdzie dzia³a³
+          dwóch trybach (zale¿nie od podanych parametrów):
           \begin{itemize}
-              \item pasywnym : tu host bêdzie oczekiwa³ na dane adresowane do
-                               niego, odbiera³ je i potwierdza³ odbiór,
-              \item aktywnym : poza powy¿szym host bêdzie czeka³ na pakiet
-                               \emph{BUS} adresowany do niego, po jego
-                               odebraniu i otrzymaniu zezwolenia na transmisjê
-                               rozpocznie wysy³anie danych, nastêpnie poczeka
-                               jeszcze na pakiet \emph{ACK} upewniaj±c siê, ¿e
-                               dane zosta³y poprawnie odebrane i wróci do
-                               trybu pasywnego.
+              \item odbieranie : stacja bêdzie oczekiwa³a na dane adresowane
+              do niej, odbiera³a je i wypisywa³a na ekran (u¿ytkowana tu
+              bêdzie funkcja \texttt{mss\_slave\_send()}),
+              \item wysy³anie : program pobierze dane do wys³ania (z
+              \texttt{stdin} lub pliku) i za pomoc± funkcji
+              \texttt{mss\_slave\_send()} wy¶le je do wskazanej stacji lub
+              w trybie \emph{broadcast}.
           \end{itemize}
-          Tryb aktywny s³u¿y oczywi¶cie do wysy³ania danych przez szynê do
-          innych hostów -- mo¿liwa jest transmisja do konkretnej stacji lub
-          skorzystanie z us³ugi \emph{broadcast}.
 \end{itemize}
 
 \section{Projekt testowania}
 
-Testy odbêd± siê w sali 138, bo tam w³a¶nie znajduje siê Wspólna
-Szyna\texttrademark. Do testów czasy wszystkich timeout'ów zostan± znacznie
-wyd³u¿one, tak aby mo¿liwa by³a dok³adna obserwacja zachowania siê
-protoko³u.
-
+Testy odbêd± siê w sali 138, bo tam znajduje siê potrzebny sprzêt.
 Przetestowane zostan± przede wszystkim sytuacje awaryjne, w szczególno¶ci
 od³±czanie wêz³ów w trakcie transmisji/poza transmisj±, wy³±czanie nadawców
 i odbiorców, wy³±czanie i w³±czanie urz±dzeñ, zak³ócenia.
+
+Poza tym podczas testów bêdziemy w miarê potrzeb dostosowywaæ parametry
+protoko³u m.in. \emph{timeout'y}.
 
 \end{document}
 
