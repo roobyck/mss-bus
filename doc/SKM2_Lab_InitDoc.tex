@@ -87,44 +87,43 @@ dodatkowych za³o¿eñ/ograniczeñ precyzuj±cych implementowane zagadnienie:
 
 Przydzia³ ³±cza przez maszynê \emph{master} opiera siê na algorytmie
 \emph{Round Robin}. Wêze³ zarz±dzaj±cy odpytuje kolejno wszystkie maszyny
-\emph{slave}, wysy³aj±c do nich pakiet \texttt{BUS}. Je¶li dana maszyna chce
-rozpocz±æ transmisjê odpowiada pakietem \texttt{REQ} i rozpoczyna transmisjê.
-W ramach pojedynczej transmisji mo¿na wys³aæ do 10 bajtów danych (w pakiecie
-\texttt{DAT}), po czym w przypadku transmisji z potwierdzeniem nastêpuje
-odpowied¼ odbiorcy pakietem \texttt{ACK}. Nastêpnie \emph{master} ponownie
-przejmuje szynê i kontynuuje odpytywanie od nastêpnej maszyny.
+\emph{slave}, wysy³aj±c do nich ramki \texttt{BUS}. Je¶li dana maszyna chce
+przes³aæ dane odpowiada ramk± \texttt{REQ} i mo¿e rozpocz±æ transmisjê.
+W ramach pojedynczej transmisji mo¿na wys³aæ do 10 bajtów danych. Nastêpnie
+\emph{master} ponownie przejmuje szynê i kontynuuje odpytywanie od nastêpnej
+maszyny.
 
 \paragraph{Przesy³ danych (z punktu widzenia u¿ytkownika)}\
 
 Maszyna \emph{slave} chc±c przes³aæ dane nas³uchuje na szynie czekaj±c na
-swoj± kolejkê -- tj. czeka na pakiet \texttt{BUS} adresowany do niej. Po
-otrzymaniu takowego odpowiada pakietem \texttt{REQ} i mo¿e rozpocz±æ
-transmisjê, czyli wys³aæ \textbf{jeden} pakiet \texttt{DAT} o zmiennej
-d³ugo¶ci pola danych od 1 do 10 bajtów. Je¶li pakiet nie by³ wys³any na adres
-\emph{broadcast'owy} czeka jeszcze na otrzymanie potwierdzenia i zwalnia
-szynê. W przypadku, gdy zosta³y jeszcze dane do wys³ania czeka na ponowny
-przydzia³ i po jego otrzymaniu powtarza procedurê.
+swoj± kolejkê -- tj. czeka na ramkê \texttt{BUS} adresowan± do niej. Po
+otrzymaniu takowej odpowiada ramk± \texttt{REQ} i mo¿e rozpocz±æ transmisjê,
+czyli wys³aæ \textbf{jedn±} ramkê \texttt{DAT} o zmiennej d³ugo¶ci pola danych
+od 1 do 10 bajtów. W przypadku transmisji z potwierdzeniem po wys³aniu danych
+stacja oczekuje na potwierdzenie, a nastêpnie zwalnia szynê. Je¶li zosta³y
+jeszcze dane do wys³ania stacja czeka na ponowny przydzia³ ³±cza i po jego
+otrzymaniu powtarza procedurê.
 
-Obowi±zek reakcji na brak potwierdzenia le¿y po stronie aplikacji, a nie
-protoko³u -- choæ oczywi¶cie aplikacja zostanie poinformowana o zaistnia³ej
-sytuacji.
+Obowi±zek reakcji na brak potwierdzenia odbioru le¿y po stronie aplikacji,
+a nie protoko³u -- choæ oczywi¶cie aplikacja zostanie poinformowana
+o zaistnia³ej sytuacji.
 
 \paragraph{Kwestia \emph{timeout'ów}}\
 
 Istniej± dwie sytuacje, w których konieczne jest wprowadzenie czasowego
-przeterminowania odpowiedzi na pakiety, aby zapobiec zawieszeniu dzia³ania
+przeterminowania odpowiedzi na ramki, aby zapobiec zawieszeniu dzia³ania
 protoko³u z powodu nieobecno¶ci której¶ ze stacji:
 \begin{itemize}
-  \item odpowied¼ \emph{slave'a} na pakiet \texttt{REQ},
+  \item odpowied¼ \emph{slave'a} na ramkê \texttt{REQ},
   \item potwierdzenie \texttt{ACK} odebrania danych przez \emph{slave'a}
         (odbiorcê).
 \end{itemize}
 Aby upro¶ciæ tworzenie protoko³u zamiast mierzyæ rzeczywisty up³yw czasu
 uznali¶my, ¿e wystarczaj±cym kryterium bêdzie pojawienie siê bajtu
-oznaczaj±cego pocz±tek ramki w pewnej liczbie odebranych bajtów po rozpoczêciu
-oczekiwania. W obu wymienionych powy¿ej przypadkach uznajemy, ¿e je¶li
-w pierwszych 5 bajtach nie pojawi siê znacznik pocz±tku poprawnej ramki,
-nas³uchuj±cy mo¿e uznaæ, i¿ odpowiedzi nie by³o.
+oznaczaj±cego pocz±tek ramki w pewnej ustalonej liczbie odebranych bajtów po
+rozpoczêciu oczekiwania. W obu wymienionych powy¿ej przypadkach uznajemy, ¿e
+je¶li w pierwszych \textbf{5 bajtach} nie pojawi siê znacznik pocz±tku
+poprawnej ramki, nas³uchuj±cy mo¿e uznaæ, i¿ odpowiedzi nie by³o.
 
 \paragraph{Weryfikacja poprawno¶ci datagramów}\
 
@@ -174,7 +173,7 @@ wys³aæ, a jaki odebraæ):
       \underbrace{\hbox{<<dane>>}}_{1-10B}
       \underbrace{\hbox{<<CRC16>>}}_{2B}
     \end{displaymath}
-    Pole \emph{d³ugo¶æ} informuje od d³ugo¶ci pola danych. Adres nadawcy
+    Pole \emph{d³ugo¶æ} informuje od rozmiarze pola danych. Adres nadawcy
     $0xFF$ oznacza transmisjê \emph{broadcast'ow±} bez potwierdzenia.
   \item ACK (\emph{slave} $\rightarrow$ \emph{slave}) -- potwierdzenie
         otrzymania danych
@@ -184,7 +183,7 @@ wys³aæ, a jaki odebraæ):
       \underbrace{\hbox{<<CRC16>>}}_{2B}
     \end{displaymath}
     Adres nie jest konieczny, nadawca wie do kogo wysy³a³ i nie s± mo¿liwe
-    wspó³bie¿ne transmisje, wiêc pakiet zawsze odnosi siê do aktualnie
+    wspó³bie¿ne transmisje, wiêc ramka zawsze odnosi siê do aktualnie
     trwaj±cej.
 \end{itemize}
 
@@ -209,9 +208,9 @@ u¿ytkowanie z poziomu aplikacji.
         w razie potrzeby potwierdzenie \texttt{ACK} do nadawcy.
 \end{itemize}
 Funkcja wysy³aj±ca zawiera w sobie ca³± logikê dzia³ania protoko³u --
-oczekiwanie na pakiet \texttt{BUS}, odpowied¼ pakietem \texttt{REQ}
-i transmisjê. W przypadku b³êdu lub braku potwierdzenia nie próbuje ponownie
-wys³aæ danych -- le¿y to w gestii aplikacji.
+oczekiwanie na ramkê \texttt{BUS}, odpowied¼ ramk± \texttt{REQ} i transmisjê.
+W przypadku b³êdu lub braku potwierdzenia nie próbuje ponownie wys³aæ danych
+-- le¿y to w gestii aplikacji.
 
 \paragraph{Aplikacje}\
 
