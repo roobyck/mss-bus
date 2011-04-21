@@ -24,7 +24,7 @@ void mss_run_master( const mss_addr* slaves, int slaves_count ) {
 	}
 	
 	/* clean up */
-	FreeSlaves( slaves_array, slaves_count );
+	free( packet_count );
 }
 
 void mss_stop_master() {
