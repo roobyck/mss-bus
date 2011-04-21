@@ -1,5 +1,4 @@
 #include "../include/mss-bus.h"
-#include "../include/slaves.h"
 
 int keep_master_running;
 
