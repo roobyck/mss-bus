@@ -1,0 +1,72 @@
+==================================== Sun, 24 Apr 2011 15:00:46 +0200 ==
+ Zasady tworzenia projektu
+=======================================================================
+
+    Aby nie pogr±¿yæ siê w Chaosie proponujê podczas pisania projektu
+trzymaæ siê nastêpuj±cych zasad:
+
+I. Tworzenie i edycja plików
+
+    1. Wszystkie pliki tekstowe (kod, pliki konfiguracyjne etc.)
+    powinny byæ napisane czystym tekstem w formacie uniksowym (chodzi
+    o znaki nowej linii), bez tabulatorów (u¿ywamy 4 spacji), z liniami
+    nie d³u¿szymi ni¿ 80 znaków;
+    2. Je¶li piszemy po polsku, nale¿y u¿ywaæ kodowania ISO8859-2;
+    3. Je¶li piszemy po angielsku, nale¿y u¿ywaæ kodowania US-ASCII.
+
+
+II. Repozytorium
+
+    1. Wszelkie dodawane do repozytorium pliki i katalogi powinny:
+        - nie zawieraæ spacji oraz polskich znaków, a tak¿e dziwnych
+          znaków w stylu * / > ~ ` i podobnych,
+        - raczej sk³adaæ siê z ma³ych liter,
+        - nazwy powinny byæ zwiêz³e, sensowne i brane raczej
+          z angielskiego.
+    2. Zmiany nale¿y opatrywaæ *zwiêz³ym* komentarzem, który powinien:
+        - zachowywaæ podane powy¿ej zasady tworzenia plików,
+        - pierwsza linia powinna byæ nie d³u¿sza ni¿ 50 znaków
+          i podsumowywaæ ogó³ dokonanych zmian,
+        - je¶li potrzebne wydaje siê opisanie zmian w konkretnych
+          plikach, to proponujê nastêpuj±c± konwencjê:
+           > dla nowych plików piszemy:
+            + ¶cie¿ka/do/pliku/plik.c
+            Opis nowego pliku...
+           > przy modyfikacji istniej±cych plików:
+            * ¶cie¿ka/do/pliku/plik.c
+            Opis zmian w istniej±cym pliku...
+           > przy usuwaniu plików:
+            - ¶cie¿ka/do/pliku/plik.c
+            Wyt³umaczenie dlaczego go usuwamy...
+
+
+III. Podstawowe zasady kodowania
+
+    1. Nie u¿ywamy znaków tabulacji ze wzglêdu na ich ró¿n±
+    interpretacjê (w sensie szeroko¶ci) w ró¿nych edytorach,
+        -> wciêcia robimy za pomoc± _czterech_ znaków spacji (dobre
+        edytory maj± opcjê wstawiania wybranej liczby spacji po
+        wci¶niêciu <TAB>).
+    2. Szeroko¶æ jakiegokolwiek kawa³ka tekstu/kodu nie powinna
+    przekraczaæ 80 kolumny (czyli jeden wiersz ma mieæ nie wiêcej ni¿
+    80 znaków).
+    3. Dyrektywy preprocesora #include za³±czaj±ce pliki nag³ówkowe
+    projektu powinny podawaæ tylko i wy³±cznie nazwê pliku, bez
+    ¶cie¿ki wzglêdnej -- by zmiana struktury katalogów nie powodowa³a
+    konieczno¶ci modyfikacji wszystkich plików ¼ród³owych,
+    4. Styl kodowania to ju¿ kwestia indywidualna, ale sugerowa³bym
+    nie nadu¿ywaæ spacji -- nie zwiêksza to czytelno¶ci, a tylko
+    rozwleka kod i w dodatku nie wygl±da zbyt ³adnie,
+    5. W ANSI C powinno u¿ywaæ siê tylko i wy³±cznie komentarzy /* */.
+
+
+=======================================================================
+
+ "Premature optimization is the root of all evil (or at least most of
+  it) in programming."
+                                                -- Donald E. Knuth
+
+=======================================================================
+                                    Autor: Tomasz Pieczerak (tphaster)
+=======================================================================
+

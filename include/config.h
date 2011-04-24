@@ -1,3 +1,4 @@
+
 #ifndef _MSS_BUS_CONFIG_H_
 #define _MSS_BUS_CONFIG_H_
 
@@ -10,4 +11,5 @@
 /** If not 0, library would print debug data into stdout. */
 #define VERBOSE_MODE 1 
 
-#endif //_MSS_BUS_CONFIG_H_
+#endif  /* _MSS_BUS_CONFIG_H_ */
+
