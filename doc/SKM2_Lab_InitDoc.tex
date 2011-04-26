@@ -129,49 +129,52 @@ poprawnej ramki, nas³uchuj±cy mo¿e uznaæ, i¿ odpowiedzi nie by³o.
 
 Ka¿da wysy³ana ramka jest opatrzona \emph{cyklicznym kodem nadmiarowym}
 \emph{CRC16}. Kod funkcji obliczaj±cej sumê kontroln± zosta³ dostarczony
-przez prowadz±cych.
+przez prowadz±cych. Ponadto 
 
 \section{Formaty ramek}
 
 Ogólny format ramek wykorzystywanych przez protokó³ wygl±da nastêpuj±co:
 \begin{displaymath}
   \underbrace{\hbox{<<znacznik pocz±tku ramki>>}}_{1B}
-  \underbrace{\hbox{<<etykieta typu>>}}_{1B}
-  \underbrace{\hbox{<<zale¿ne od typu>>}}_{0-17B}
   \underbrace{\hbox{<<CRC16>>}}_{2B}
+  \underbrace{\hbox{<<etykieta typu>>}}_{1B}
+  \underbrace{\hbox{<<zale¿ne od typu>>}}_{0-14B}
 \end{displaymath}
 
-\emph{Znacznik pocz±tku ramki} s³u¿y ³atwiejszej identyfikacji ramek
-w strumieniu bajtów i jest wspólny dla wszystkich typów (wprowadzamy dla niego
-oznaczenie \texttt{BOF} -- \emph{begin of frame}). W protokole wystêpuj±
-cztery typy ramek (w nawiasach podane jest jaki rodzaj stacji mo¿e dan± ramkê
-wys³aæ, a jaki odebraæ):
+\emph{Znacznik pocz±tku ramki} o wartoœci numerycznej $0xBF$ s³u¿y ³atwiejszej
+identyfikacji ramek w strumieniu bajtów i jest wspólny dla wszystkich typów
+(wprowadzamy dla niego oznaczenie \texttt{BOF} -- \emph{begin of frame}).
+W protokole wystêpuj± cztery typy ramek (w nawiasach podane jest jaki rodzaj
+stacji mo¿e dan± ramkê wys³aæ, a jaki odebraæ):
 \begin{itemize}
   \item BUS (\emph{master} $\rightarrow$ \emph{slave}) -- zapytanie
         o zainteresowanie szyn±
     \begin{displaymath}
       \underbrace{\hbox{<<BOF>>}}_{1B}
+      \underbrace{\hbox{<<CRC16>>}}_{2B}
       \underbrace{01h}_{1B}
       \underbrace{\hbox{<<adres \emph{slave'a}>>}}_{1B}
-      \underbrace{\hbox{<<CRC16>>}}_{2B}
     \end{displaymath}
-  \item REQ (\emph{slave} $\rightarrow$ \emph{master}) -- ¿±danie dostêpu do
-        szyny
+  \item NRQ (\emph{slave} $\rightarrow$ \emph{master}) -- rezygnacja z dostêpu do
+        szyny (wysy³anie pakietów \texttt(NRQ) przez odpytywan¹ maszynê pracuj¹c¹
+		w trybie \emph(slave) jest opcjonalne).
     \begin{displaymath}
       \underbrace{\hbox{<<BOF>>}}_{1B}
-      \underbrace{02h}_{1B}
       \underbrace{\hbox{<<CRC16>>}}_{2B}
+      \underbrace{02h}_{1B}
     \end{displaymath}
-    Adres stacji ¿±daj±cej nie jest tu konieczny \emph{master} wie kogo pyta³.
+    Adres stacji rezygnuj¹cej z dostêpu nie jest tu konieczny, gdy¿ \emph{master}
+	wie komu przyzna³ dostêp.
   \item DAT (\emph{slave} $\rightarrow$ \emph{slave}) -- pakiet danych
     \begin{displaymath}
       \underbrace{\hbox{<<BOF>>}}_{1B}
+      \underbrace{\hbox{<<CRC16>>}}_{2B}
       \underbrace{04h}_{1B}
       \underbrace{\hbox{<<adres odbiorcy>>}}_{1B}
       \underbrace{\hbox{<<adres nadawcy>>}}_{1B}
+      \underbrace{\hbox{<<numer ramki>>}}_{1B}
       \underbrace{\hbox{<<d³ugo¶æ>>}}_{1B}
       \underbrace{\hbox{<<dane>>}}_{1-10B}
-      \underbrace{\hbox{<<CRC16>>}}_{2B}
     \end{displaymath}
     Pole \emph{d³ugo¶æ} informuje od rozmiarze pola danych. Adres odbiorcy
     $0xFF$ oznacza transmisjê \emph{broadcast'ow±} bez potwierdzenia.
@@ -179,12 +182,13 @@ wys³aæ, a jaki odebraæ):
         otrzymania danych
     \begin{displaymath}
       \underbrace{\hbox{<<BOF>>}}_{1B}
-      \underbrace{08h}_{1B}
       \underbrace{\hbox{<<CRC16>>}}_{2B}
+      \underbrace{08h}_{1B}
+      \underbrace{\hbox{<<numer ramki>>}}_{1B}
     \end{displaymath}
     Adres nie jest konieczny, nadawca wie do kogo wysy³a³ i nie s± mo¿liwe
     wspó³bie¿ne transmisje, wiêc ramka zawsze odnosi siê do aktualnie
-    trwaj±cej.
+    trwaj±cej transmisji.
 \end{itemize}
 
 \section{Architektura rozwi±zania}

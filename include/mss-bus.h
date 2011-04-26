@@ -22,4 +22,4 @@ void mss_slave_send( mss_addr addr, const char* data, size_t data_len );
 
 void mss_slave_recv( char buffer, size_t* data_len );
 
-#endif
+#endif // _MSS_BUS_H_

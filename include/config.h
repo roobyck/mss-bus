@@ -2,12 +2,15 @@
 #define _MSS_BUS_CONFIG_H_
 
 /** Defines max number of slaves managed by the master. */
-#define MAX_SLAVES 64
+#define MSS_MAX_SLAVES 64
 
 /** Defines max address value that could be assigned to a slave. */
-#define MAX_ADDR 254
+#define MSS_MAX_ADDR 254
+
+/** Definiuje maksymalna ilosc bajtow niesiona przez jeden pakiet typu DAT. */
+#define MSS_DATA_PER_PACKET 10
 
 /** If not 0, library would print debug data into stdout. */
-#define VERBOSE_MODE 1 
+#define MSS_VERBOSE_MODE 1 
 
 #endif //_MSS_BUS_CONFIG_H_
