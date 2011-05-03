@@ -87,26 +87,37 @@ dodatkowych za³o¿eñ/ograniczeñ precyzuj±cych implementowane zagadnienie:
 
 Przydzia³ ³±cza przez maszynê \emph{master} opiera siê na algorytmie
 \emph{Round Robin}. Wêze³ zarz±dzaj±cy odpytuje kolejno wszystkie maszyny
-\emph{slave}, wysy³aj±c do nich ramki \texttt{BUS}. Je¶li dana maszyna chce
-przes³aæ dane odpowiada ramk± \texttt{REQ} i mo¿e rozpocz±æ transmisjê.
-W ramach pojedynczej transmisji mo¿na wys³aæ do 10 bajtów danych. Nastêpnie
-\emph{master} ponownie przejmuje szynê i kontynuuje odpytywanie od nastêpnej
-maszyny.
+\emph{slave}, wysy³aj±c do nich ramki \texttt{BUS}. Domyœlnie \emph{master}
+zak³ada, i¿ odpytywany wêze³ bêdzie transmitowa³ dane. Je¶li \emph{slave} nie
+ma danych do przes³ania, mo¿e on przes³aæ do wêz³a zarz¹dzaj¹cego ramkê
+\texttt{NRQ} w celu rezygnacji z prawa do transmisji. Analogiczny skutek bêdzie
+mia³ brak odpowiedzi - po przekroczeniu ustalonego timeoutu \emph{master}
+przeka¿e prawo do transmisji nastêpnej maszynie. W ramach pojedynczej
+transmisji mo¿na wys³aæ do 10 bajtów danych. Nastêpnie \emph{master} ponownie
+przejmuje szynê i kontynuuje odpytywanie od nastêpnej maszyny.
 
 \paragraph{Przesy³ danych (z punktu widzenia u¿ytkownika)}\
 
 Maszyna \emph{slave} chc±c przes³aæ dane nas³uchuje na szynie czekaj±c na
 swoj± kolejkê -- tj. czeka na ramkê \texttt{BUS} adresowan± do niej. Po
-otrzymaniu takowej odpowiada ramk± \texttt{REQ} i mo¿e rozpocz±æ transmisjê,
-czyli wys³aæ \textbf{jedn±} ramkê \texttt{DAT} o zmiennej d³ugo¶ci pola danych
-od 1 do 10 bajtów. W przypadku transmisji z potwierdzeniem po wys³aniu danych
-stacja oczekuje na potwierdzenie, a nastêpnie zwalnia szynê. Je¶li zosta³y
-jeszcze dane do wys³ania stacja czeka na ponowny przydzia³ ³±cza i po jego
-otrzymaniu powtarza procedurê.
+otrzymaniu takowej rozpoczyna transmisjê, tzn. wysy³a \textbf{jedn±} ramkê
+\texttt{DAT} o zmiennej d³ugo¶ci pola danych od 1 do 10 bajtów. W przypadku
+transmisji z potwierdzeniem po wys³aniu danych stacja oczekuje na
+potwierdzenie, a nastêpnie zwalnia szynê. Je¶li zosta³y jeszcze dane do
+wys³ania stacja czeka na ponowny przydzia³ ³±cza i po jego otrzymaniu powtarza
+procedurê.
 
-Obowi±zek reakcji na brak potwierdzenia odbioru le¿y po stronie aplikacji,
-a nie protoko³u -- choæ oczywi¶cie aplikacja zostanie poinformowana
-o zaistnia³ej sytuacji.
+Dodatkowo ramki \texttt{DAT} s¹ numerowane. W przypadku braku otrzymania
+potwierdzenia poprawnego odbioru danych transmisja zostanie przerwana, zaœ
+aplikacja otrzyma informacjê o iloœci danych, które zosta³y poprawnie
+przes³ane. W takim przypadku pierwsza ramka kolejnej transmisji danych bêdzie
+mia³a numer ostatniej niepotwierdzonej ramki \texttt{DAT}.
+
+Retransmisja zagubionych danych nie le¿y w gestii protoko³u, jednak aby
+zapobiec duplikowaniu ramek \texttt{DAT} u odbiorcy w przypadku zagubienia
+potwierdzenia kiedy to aplikacja retransmituje dane, protokó³ zapewnia, i¿
+otrzymanie kolejno dwóch ramek danych o takim samym numerze spowoduje
+zignorowanie danych z drugiej ramki (chocia¿ zostanie ona potwierdzona).
 
 \paragraph{Kwestia \emph{timeout'ów}}\
 
@@ -114,7 +125,7 @@ Istniej± dwie sytuacje, w których konieczne jest wprowadzenie czasowego
 przeterminowania odpowiedzi na ramki, aby zapobiec zawieszeniu dzia³ania
 protoko³u z powodu nieobecno¶ci której¶ ze stacji:
 \begin{itemize}
-  \item odpowied¼ \emph{slave'a} na ramkê \texttt{REQ},
+  \item odpowied¼ \emph{slave'a} na ramkê \texttt{BUS},
   \item potwierdzenie \texttt{ACK} odebrania danych przez \emph{slave'a}
         (odbiorcê).
 \end{itemize}
@@ -170,9 +181,9 @@ stacji mo¿e dan± ramkê wys³aæ, a jaki odebraæ):
       \underbrace{\hbox{<<BOF>>}}_{1B}
       \underbrace{\hbox{<<CRC16>>}}_{2B}
       \underbrace{04h}_{1B}
+      \underbrace{\hbox{<<numer ramki>>}}_{1B}
       \underbrace{\hbox{<<adres odbiorcy>>}}_{1B}
       \underbrace{\hbox{<<adres nadawcy>>}}_{1B}
-      \underbrace{\hbox{<<numer ramki>>}}_{1B}
       \underbrace{\hbox{<<d³ugo¶æ>>}}_{1B}
       \underbrace{\hbox{<<dane>>}}_{1-10B}
     \end{displaymath}
@@ -184,7 +195,7 @@ stacji mo¿e dan± ramkê wys³aæ, a jaki odebraæ):
       \underbrace{\hbox{<<BOF>>}}_{1B}
       \underbrace{\hbox{<<CRC16>>}}_{2B}
       \underbrace{08h}_{1B}
-      \underbrace{\hbox{<<numer ramki>>}}_{1B}
+      \underbrace{\hbox{<<numer potwierdzanej ramki>>}}_{1B}
     \end{displaymath}
     Adres nie jest konieczny, nadawca wie do kogo wysy³a³ i nie s± mo¿liwe
     wspó³bie¿ne transmisje, wiêc ramka zawsze odnosi siê do aktualnie
