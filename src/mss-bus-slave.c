@@ -59,6 +59,8 @@ int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
                     /*Note: zakomentowanej tej linii sprawi, iz protokol bedzie
                      *      zapewnial poprawnosc transmisji (retransmitowal da-
                             ne do skutku). */
+                    free( packet );
+                    free( dat_packet );
                     return data_sent;
                 }
             
@@ -68,6 +70,8 @@ int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
         
     } /* while has data to send */
     
+    free( packet );
+    free( dat_packet );
     return data_sent; /* Success - sent all the data. */
 }
 
