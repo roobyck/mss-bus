@@ -12,7 +12,7 @@
 #define MSS_MAX_ADDR 254
 
 /** A broadcast address. */
-#define BROADCAST_ADDR MSS_MAX_ADDR+1
+#define MSS_BROADCAST_ADDR MSS_MAX_ADDR+1
 
 /** Definiuje maksymalna ilosc bajtow niesiona przez jeden pakiet typu DAT. */
 #define MSS_DATA_PER_PACKET 10

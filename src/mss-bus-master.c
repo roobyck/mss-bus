@@ -37,7 +37,7 @@ void mss_run_master (const mss_addr* slaves, int slaves_count) {
             )    
         ) {
             /* Unless DAT is broadcast, we expect an ACK packet to appear. */
-            if( ((DataPacket) packet)->dst_addr != BROADCAST_ADDR )
+            if( ((DataPacket) packet)->dst_addr != MSS_BROADCAST_ADDR )
                 int recv_res = receive_mss_packet( packet, MSS_TIMEOUT );
         } /* else current slave has nothing to transfer. */
         
