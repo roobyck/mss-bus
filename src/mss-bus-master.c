@@ -18,9 +18,7 @@ void mss_run_master (const mss_addr* slaves, int slaves_count) {
         BusPacket* p = (BusPacket)(bus_packet + i);
         p->slave_addr = slaves[ i ];
         p->packet_type = MSS_BUS;
-        p->crc = crc( p+2, 2 );
-            /* sizeof(mss_packet_type)+sizeof(mss_addr) zamiast 2? */
-            /* TODO: Makrodefinicje CRC_FOR_BUS, CRC_FOR_DAT, etc. */        
+        CRC_FOR_BUS( p );
     }
     int current_slave = 0;
     

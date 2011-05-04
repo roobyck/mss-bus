@@ -4,6 +4,7 @@
 
 #include "types.h"
 #include "config.h"
+#include "crc.h"
 
 /** Begin of Frame tag. */
 #define MSS_BOF 0xBF
@@ -19,6 +20,12 @@
 
 /** Sent when data was received and it's verification was successful. */
 #define MSS_ACK 0x8
+
+#define CRC_FOR_BUS(pac) ((BusPacket)pac)->crc = crc( (pac)+2, 2 )
+#define CRC_FOR_ACK(pac) ((AckPacket)pac)->crc = crc( (pac)+2, 2 )
+#define CRC_FOR_DAT(pac) ((DataPacket)pac)->crc = crc( (pac)+2, 5+(((DataPacket)pac)->data_len) )
+
+/* TODO: sizeof(mss_packet_type)+sizeof(mss_addr) zamiast 2? */ 
 
 /**
  * Generic packet type, containing minimal set of data structures required to
