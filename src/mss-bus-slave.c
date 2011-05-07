@@ -87,6 +87,48 @@ int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
     return data_sent; /* Success - sent all the data. */
 }
 
-int mss_slave_recv (mss_addr* sender_addr, const char* buffer, int* is_broadcast) {
+int mss_slave_recv (mss_addr* sender_addr, char* buffer, int* is_broadcast) {
+    MssPacket* packet = (MssPacket*) malloc( sizeof(MssPacket) );
     
+    int loop = 1;
+    
+    /* Keep receiving until received a packet to local machine. */
+    while( loop ) {
+        int recv_res = receive_mss_packet( packet, MSS_TIMEOUT );
+        if( (recv_res == MSS_OK) && (packet->generic.type == MSS_DAT) ) {
+            
+            /* Catch incoming data. */
+            mss_addr dst_addr = packet->dat.dst_addr;
+            if( (dst_addr == local_addr) || (dst_addr == MSS_BROADCAST_ADDR) ) {
+                memcpy( buffer, packet->dat.data, packet->dat.data_len );
+                sender_addr == packet->dat.src_addr;
+                loop = 0;
+            }
+            
+            /* SDA, sender awaits ACK. */
+            if( dst_addr == local_addr ) {
+                /* Prepare packet... */
+                MssPacket* ack_packet = (MssPacket*) malloc( sizeof(MssPacket) );
+                ack_packet->ack.packet_type = MSS_ACK;
+                ack_packet->ack.number = packet->dat.number;
+                CRC_FOR_ACK( ack_packet );
+                /* ...then send it... */
+                send_mss_packet( ack_packet );
+                /* ...and destroy eventually, mwahaha! */
+                free( ack_packet );
+                /* Notify user it was SDA... */
+                (*is_broadcast) = 0;
+                
+            /* Otherwise notify user it was SDN... */
+            } else
+                (*is_broadcast) = 1;
+        
+        } /* if */
+    
+    } /* while( loop ) */
+    
+    /* Return. */
+    int bytes_received = packet->dat.data_len;
+    free( packet );
+    return bytes_received;
 }

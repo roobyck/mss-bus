@@ -49,9 +49,9 @@ int mss_slave_send (mss_addr addr, const char* data, size_t data_len);
  * @param buffer Message is written to the buffer.
  * @param is_broadcast Is set, if transmission was broadcast message; otherwise
  *        it is cleared.
- * @param Number of data bytes received.
+ * @return Number of data bytes received.
  */
-int mss_slave_recv (mss_addr* sender_addr, const char* buffer, int* is_broadcast);
+int mss_slave_recv (mss_addr* sender_addr, char* buffer, int* is_broadcast);
 
 #endif  /* _MSS_BUS_H_ */
 
