@@ -10,6 +10,8 @@ void mss_run_master (const mss_addr* slaves, int slaves_count) {
     /* set up working environment */
     keep_master_running = 1;
 
+    mss_init();
+    
     MssPacket* packet = (MssPacket*) malloc( sizeof(MssPacket) );
     /* Array of BUSes to pre-calculate crc checksums. */
     MssPacket* bus_packet = (MssPacket*) malloc( slaves_count * sizeof(MssPacket) );

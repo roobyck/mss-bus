@@ -11,7 +11,8 @@ mss_num incoming_count[ MSS_MAX_ADDR + 1 ];
 /** Contains counters which are used to mark outcoming data packets. */
 mss_num outcoming_count[ MSS_MAX_ADDR + 1 ];
 
-void init_slave (mss_addr addr) {
+void mss_init_slave (mss_addr addr) {
+    mss_init();
     local_addr = addr;
     memset( incoming_count, 0, (MSS_MAX_ADDR + 1) * sizeof(mss_num) );
     memset( outcoming_count, 0, (MSS_MAX_ADDR + 1) * sizeof(mss_num) );
