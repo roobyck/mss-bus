@@ -3,12 +3,14 @@
 
 const GenericPacket MSS_NRQ_PACKET = { crc('MSS_NRQ',1), MSS_NRQ };
 
+// "Cometh to me, serial port file descriptor, for thou shall serve me well!"
+//       -- Packet Manager of mss-bus lib
 extern int mss_fd;
 
 /** Defines undefined behaviour. */
 #define MSS_WTF -1256251
 
-/**
+/*
  * Receives a packet from the mss network. This function performs a crc16
  * packet validation.
  * @param packet A buffer in which received packet would be stored.
@@ -94,6 +96,33 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
     return MSS_WTF;
 }
 
+/*
+ * Sends a packet. This functions blocks until a packet is send, which will
+ * happen as soon as local slave will gain access to the bus.
+ * @param packet A packet to be send.
+ * @return Zero (MSS_OK) or MSS_WTF (-1256251) otherwise.
+ */
 int send_mss_packet( MssPacket* packet ) {
+    int bytes_total;    
+    switch( packet->generic.type ) { 
+    case MSS_BUS: bytes_total = 4; break;
+    case MSS_NRQ: bytes_total = 3; break;
+    case MSS_DAT: bytes_total = 7 + pac->dat.data_len; break;
+    case MSS_ACK: bytes_total = 4; break;
+    default: return MSS_WTF;
+    }
 
+    // declaration for pointer arithmetic magic purposes
+    char* packet_b = (char*) packet;
+    
+    for(
+        int sent = 0;
+        bytes_total != sent;
+        sent += libser_write( mss_fd, packet+sent, bytes_total-sent )
+    ) {
+        // Why should we code in traditional manner if we can implement
+        // everything inside for declaration?
+    }
+    
+    return MSS_OK;
 }
