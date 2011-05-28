@@ -6,6 +6,16 @@
 #include "./config.h"
 
 /**
+ * @return 0 on success.
+ */
+int mss_init ();
+
+/**
+ *
+ */
+void mss_close ();
+
+/**
  * Launches a mss-master which takes control over the network, allowing
  * connected slaves to exchange data. Slaves are staticly assigned to the
  * master. Note that mss_run_master is blocking function and will continue to
@@ -24,7 +34,7 @@ void mss_stop_master();
 /**
  * Initializes slave on local machine and assigns given address to it.
  */
-void init_slave (mss_addr addr);
+void mss_init_slave (mss_addr addr);
 
 /**
  * Performs send operation over mss network. mss_slave_send blocks until a
