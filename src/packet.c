@@ -42,32 +42,35 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
             // if it's time for packet type recognition...
             if( timeout == 1 && !type_known ) {
                 type_known = TRUE;
-                if( c == MSS_BUS ) timeout = 1;  else 
-                if( c == MSS_NRQ ) timeout = 0;  else 
-                if( c == MSS_DAT ) timeout = 14; else 
-                if( c == MSS_ACK ) timeout = 1;
+                if( c == MSS_BUS ) timeout = 2;  else
+                if( c == MSS_NRQ ) timeout = 1;  else
+                if( c == MSS_DAT ) timeout = 15; else
+                if( c == MSS_ACK ) timeout = 2;
                 else return MSS_BAD_TYPE;
             }
             
             // make ready to read next byte
             ++pak_ptr;
             
-        } else if( c == MSS_BOF ) {
+        } else if( c == (char) MSS_BOF ) {
             got_packet = TRUE;
             // at least three more byte must be received
-            timeout = 3;
+            timeout = 4;
         }
         
         // if infinite wait
         if( timeout < 0 ) timeout = -1;
     }
     
+    mss_crc16 received_crc = packet->generic.crc;
+
     // we have received something...
     if( got_packet ) {
         switch( packet->generic.packet_type ) {
         
         case MSS_BUS:
-            if( packet->bus.crc == crc16(((const unsigned char*)(packet))+2, 2, 0) )
+        	CRC_FOR_BUS( packet );
+            if( received_crc == packet->bus.crc )
                 return MSS_OK;
             else return MSS_BAD_CRC;
             break;
@@ -79,14 +82,15 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
             break;
 
         case MSS_DAT:
-            if( packet->dat.crc ==
-                crc16( ((const unsigned char*)(packet))+2, 5 + packet->dat.data_len, 0) )
+        	CRC_FOR_DAT( packet );
+            if( packet->dat.crc == received_crc )
                     return MSS_OK;
             else return MSS_BAD_CRC;
             break;
 
         case MSS_ACK:
-            if( packet->ack.crc == crc16(((const unsigned char*)(packet))+2, 2, 0) )
+        	CRC_FOR_ACK( packet );
+            if( packet->ack.crc == received_crc )
                 return MSS_OK;
             else return MSS_BAD_CRC;
             break;            

@@ -4,7 +4,8 @@
  */
 
 #include <fcntl.h>
-#include <termios.h>
+//#include <termios.h>
+#define B9600 9600
 #include <unistd.h>
 #include <sys/time.h>
  

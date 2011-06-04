@@ -39,21 +39,21 @@
 typedef struct generic_packet {
     mss_crc16 crc;
     mss_packet_type packet_type;
-} GenericPacket;
+} __attribute__((packed)) GenericPacket;
 
 /** BUS-specific packet structure. */
 typedef struct bus_packet {
     mss_crc16 crc;
     mss_packet_type packet_type;
     mss_addr slave_addr;
-} BusPacket;
+} __attribute__((packed)) BusPacket;
 
 /** ACK-specific packet structure. */
 typedef struct ack_packet {
     mss_crc16 crc;
     mss_packet_type packet_type;
     mss_num number;
-} AckPacket;
+} __attribute__((packed)) AckPacket;
 
 /** DAT-specific packet structure. */
 typedef struct data_packet {
