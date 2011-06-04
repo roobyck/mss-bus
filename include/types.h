@@ -2,15 +2,13 @@
 #ifndef _MSS_BUS_TYPES_H_
 #define _MSS_BUS_TYPES_H_
 
-#define mss_addr unsigned char
+#include <stdint.h>
 
-#define mss_packet_type unsigned char
-
-#define mss_crc16 unsigned short
-
-#define mss_size unsigned char
-
-#define mss_num unsigned char
+typedef uint8_t  mss_addr;
+typedef uint8_t  mss_packet_type;
+typedef uint16_t mss_crc16;
+typedef uint8_t  mss_size;
+typedef uint8_t  mss_num;
 
 #ifndef TRUE
 #define TRUE 1
