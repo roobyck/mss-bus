@@ -111,3 +111,4 @@ int receive_mss_packet( MssPacket* packet, int timeout );
 int send_mss_packet( MssPacket* packet );
 
 #endif  /* _MSS_BUS_PACKET_H_ */
+

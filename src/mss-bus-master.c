@@ -59,3 +59,4 @@ void mss_stop_master (void)
 {
     keep_master_running = 0;
 }
+

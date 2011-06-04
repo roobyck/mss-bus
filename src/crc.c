@@ -1,26 +1,17 @@
 /*
-    Plik: crc.cpp
+ *  Plik: crc.cpp
+ *
+ *  Plik zawiera funkcjê crc16() o bliczaj±c± CRC 16-bitowe. Dodatkowo je¶li
+ *  jest zdefiniowana sta³a:
+ *    GENERATE - kompilowana jest funkcja main() generuj±ca tablicê dla
+ *               szybkiego obliczania CRC (polinominal)
+ *    TEST     - kompilowana jest funkcja main() testuj±ca oblicznie CRC dla
+ *               polinominal x^15 + 1
+ */
 
-    Plik zawiera funkcjê crc16 obliczaj¹c¹ crc 16 bitowe.
-    Dodatkowo jeœli jest zdefiniowana sta³a:
-        GENERATE - kompilowana jest funkcja main generuj¹ca tablicê dla szybkiego obliczania CRC
-                   (polinominal)
-        TEST - kompilowana jest funkcja main testuj¹ca oblicznie CRC dla polinominal x^15 + 1
-*/
-#include <stdafx.h>
 #include "crc.h"
-//#define TEST
-//#define GENERATE
-
-#ifdef TEST
-    #include <stdlib.h>
-    #include <stdio.h>
-#endif
-
-#ifdef GENERATE
-    #include <stdlib.h>
-    #include <stdio.h>
-#endif
+/*#define TEST*/
+/*#define GENERATE*/
 
 /* CRC16 polinominal 0100001 = x^15 + 1*/
 static mss_crc16 crc_table[256] = {
@@ -60,21 +51,25 @@ static mss_crc16 crc_table[256] = {
 
 
 /*
-    Funkcja oblicza CRC 16 bitowe. Wykorzystuje tablicê crc_table (wyznaczonej dla danego polinominal).
-    Jeœli chcemy obliczaæ crc w kilku krokach, mo¿emy wywo³aæ funkcjê wielokrotnie przekazyj¹c jej
-    kolejne ci¹gi bajtów z których chcemy policzyæ crc oraz crc z poprzedniego kroku. Pocz¹tkowe crc 
-    powinno byæ 0.
+    Funkcja oblicza CRC 16-bitowe. Wykorzystuje tablicê crc_table (wyznaczonej
+    dla danego polinominal). Je¶li chcemy obliczaæ CRC w kilku krokach,
+    mo¿emy wywo³aæ funkcjê wielokrotnie przekazyj±c jej kolejne ci±gi bajtów
+    z których chcemy policzyæ CRC oraz CRC z poprzedniego kroku. Pocz±tkowe
+    CRC powinno byæ 0.
 
-    Parametry: data - wskazanie na bufor zawieraj¹cy dane z których liczymy CRC,
-               size - wielkoœæ bufora data,
-               crc - crc z poprzedniego wywo³ania lub 0.
-    Wynik: obliczone crc.
+    Parametry:
+      data - wskazanie na bufor zawieraj±cy dane z których liczymy CRC,
+      size - wielko¶æ bufora data,
+      crc  - CRC z poprzedniego wywo³ania lub 0.
+    Wynik:
+      Obliczone CRC.
  */
-unsigned short crc16( const unsigned char * data, unsigned long size, unsigned short crc )
+unsigned short crc16 (const unsigned char * data, unsigned long size,
+                      unsigned short crc)
 {
-	while( size -- )
-		crc = crc_table[ (crc >> 8 ^ * (data++)) & 0xffU ] ^ (crc << 8);
-	return crc;
+    while (size--)
+        crc = crc_table[(crc >> 8 ^ *(data++)) & 0xffU] ^ (crc << 8);
+    return crc;
 }
 
 /****************************************************************************/
@@ -82,80 +77,87 @@ unsigned short crc16( const unsigned char * data, unsigned long size, unsigned s
 
 /*
  * PURPOSE
- *	Test udf_crc()
+ *  Test udf_crc()
  *
  * HISTORY
- *	July 21, 1997 - Andrew E. Mileski
- *	Adapted from OSTA-UDF(tm) 1.50 standard.
+ *  July 21, 1997 - Andrew E. Mileski
+ *  Adapted from OSTA-UDF(tm) 1.50 standard.
  */
 
-unsigned char t1[] = { 0x30U, 0x30U, 0x30U, 0x30U, 0x30U, 0x30U, 0x3BU, 0x0DU };
+#include <stdlib.h>
+#include <stdio.h>
 
-int main(void)
+unsigned char t1[] = {0x30U, 0x30U, 0x30U, 0x30U, 0x30U, 0x30U, 0x3BU, 0x0DU};
+
+int main (void)
 {
-	unsigned short x;
-	x = crc16(t1, sizeof( t1 ), 0 );
-	printf("udf_crc16 t1: calculated = %4.4x, correct = %4.4x\n", x, 0x0bb6U );
+    unsigned short x;
+    x = crc16(t1, sizeof(t1), 0);
+    printf("udf_crc16 t1: calculated = %4.4x, correct = %4.4x\n", x, 0x0bb6U );
     return 0;
 }
 
-#endif /* defined(TEST) */
+#endif  /* TEST */
 
 /****************************************************************************/
 #ifdef GENERATE
 
-/*
- * PURPOSE
- *	Generate a table for fast 16-bit CRC calculations (any polynomial).
- *
- * DESCRIPTION
- *	The ITU-T V.41 polynomial is 010041.
- *
- * HISTORY
- *	July 21, 1997 - Andrew E. Mileski
- *	Adapted from OSTA-UDF(tm) 1.50 standard.
- */
-
+#include <stdlib.h>
 #include <stdio.h>
 
-int main(int argc, char **argv)
+/*
+ * PURPOSE
+ *  Generate a table for fast 16-bit CRC calculations (any polynomial).
+ *
+ * DESCRIPTION
+ *  The ITU-T V.41 polynomial is 010041.
+ *
+ * HISTORY
+ *  July 21, 1997 - Andrew E. Mileski
+ *  Adapted from OSTA-UDF(tm) 1.50 standard.
+ */
+
+int main (int argc, char **argv)
 {
-	unsigned long crc, poly;
-	int n, i;
+    unsigned long crc, poly;
+    int n, i;
 
-	/* Get the polynomial */
-//	sscanf(argv[1], "%lo", &poly);
+    /* Get the polynomial */
+    /*sscanf(argv[1], "%lo", &poly);*/
     poly = 0x8001;
-	if (poly & 0xffff0000U){
-		fprintf(stderr, "polynomial is too large\n");
-		exit(1);
-	}
+    if (poly & 0xffff0000U) {
+        fprintf(stderr, "polynomial is too large\n");
+        exit(1);
+    }
 
-	printf("/* CRC 0%o */\n", poly);
+    printf("/* CRC 0%o */\n", poly);
 
-	/* Create a table */
-	printf("static unsigned short crc_table[256] = {\n");
-	for (n = 0; n < 256; n++){
-		if (n % 8 == 0)
-			printf("\t");
-		crc = n << 8;
-		for (i = 0; i < 8; i++){
-			if(crc & 0x8000U)
-				crc = (crc << 1) ^ poly;
-			else
-				crc <<= 1;
-		crc &= 0xFFFFU;
-		}
-		if (n == 255)
-			printf("0x%04xU ", crc);
-		else
-			printf("0x%04xU, ", crc);
-		if(n % 8 == 7)
-			printf("\n");
-	}
-	printf("};\n");
+    /* Create a table */
+    printf("static unsigned short crc_table[256] = {\n");
+    for (n = 0; n < 256; n++) {
+        if (n % 8 == 0)
+            printf("\t");
+        crc = n << 8;
 
-	return 0;
+        for (i = 0; i < 8; i++) {
+            if (crc & 0x8000U)
+                crc = (crc << 1) ^ poly;
+            else
+                crc <<= 1;
+            crc &= 0xFFFFU;
+        }
+
+        if (n == 255)
+            printf("0x%04xU ", crc);
+        else
+            printf("0x%04xU, ", crc);
+        if (n % 8 == 7)
+            printf("\n");
+    }
+    printf("};\n");
+
+    return 0;
 }
 
-#endif /* defined(GENERATE) */
+#endif  /* GENERATE */
+

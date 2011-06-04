@@ -77,7 +77,7 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
 
         case MSS_DAT:
             if( packet->dat.crc ==
-                crc( ((char*)(pac))+2, 5 + pac->dat.data_len )
+                crc( ((char*)(pac))+2, 5 + pac->dat.data_len ))
                     return MSS_OK;
             else return MSS_BAD_CRC;
             break;
@@ -126,3 +126,4 @@ int send_mss_packet( MssPacket* packet ) {
     
     return MSS_OK;
 }
+

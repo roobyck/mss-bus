@@ -8,7 +8,6 @@
 
 #include "libser.h"
 
-
 /*
    Funkcja otwiera port szeregowy. Port jest otwierany z w³±czonym sprzêtowym
    sterowaniem przep³ywem (RTS/CTS) w celu poprawnego sterowania w³±czaniem
@@ -156,5 +155,4 @@ int libser_write (int fd, const void *buff, size_t count)
     libser_setrts(fd, RTS_OFF);
     return cnt;
 }
-
 
