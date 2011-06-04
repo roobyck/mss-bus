@@ -1,6 +1,8 @@
 
 #include "mss-bus.h"
 #include "packet.h"
+#include <string.h>
+#include <stdlib.h>
 
 /** Local machine address. */
 mss_addr local_addr;
@@ -26,20 +28,20 @@ int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
     
     /* Watch out, MSS_BROADCAST_ADDR produces invalid pointer, thus counter
      * shall never be used in SDN mode... */
-    int* packet_count = outcoming_count + target_addr;
+    mss_num* packet_count = outcoming_count + target_addr;
     
     dat_packet->dat.packet_type = MSS_DAT;
     dat_packet->dat.src_addr = local_addr;
     dat_packet->dat.dst_addr = target_addr;
     
     /* Keep sending until all data was sent. */
-    while( data_send != data_len ) {
+    while( data_sent != data_len ) {
         int recv_res = receive_mss_packet( packet, MSS_TIMEOUT );
         
         /* Wait for a bus... */
         if(
             (recv_res == MSS_OK) &&
-            (packet->generic.type == MSS_BUS) &&
+            (packet->generic.packet_type == MSS_BUS) &&
             (packet->bus.slave_addr == local_addr)
         ) {
             /* Prepare packet... */
@@ -63,7 +65,7 @@ int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
                 recv_res = receive_mss_packet( packet, MSS_TIMEOUT );
                 
                 /* Got ACK */
-                if( (recv_res == MSS_OK) && (packet->generic.type == MSS_ACK) )
+                if( (recv_res == MSS_OK) && (packet->generic.packet_type == MSS_ACK) )
                     data_sent += copy_bytes;
     
                 /* No ACK ;( */
@@ -96,13 +98,13 @@ int mss_slave_recv (mss_addr* sender_addr, char* buffer, int* is_broadcast) {
     /* Keep receiving until received a packet to local machine. */
     while( loop ) {
         int recv_res = receive_mss_packet( packet, MSS_TIMEOUT );
-        if( (recv_res == MSS_OK) && (packet->generic.type == MSS_DAT) ) {
+        if( (recv_res == MSS_OK) && (packet->generic.packet_type == MSS_DAT) ) {
             
             /* Catch incoming data. */
             mss_addr dst_addr = packet->dat.dst_addr;
             if( (dst_addr == local_addr) || (dst_addr == MSS_BROADCAST_ADDR) ) {
                 memcpy( buffer, packet->dat.data, packet->dat.data_len );
-                sender_addr == packet->dat.src_addr;
+                *sender_addr = packet->dat.src_addr;
                 loop = 0;
             }
             

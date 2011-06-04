@@ -1,4 +1,5 @@
 
+#include <stdlib.h>
 #include "config.h"
 #include "mss-bus.h"
 #include "packet.h"
@@ -16,11 +17,11 @@ void mss_run_master (const mss_addr* slaves, int slaves_count) {
     /* Array of BUSes to pre-calculate crc checksums. */
     MssPacket* bus_packet = (MssPacket*) malloc( slaves_count * sizeof(MssPacket) );
     int i;
-    for( i = 0; i < MAX_ADDR; ++i ) {
-        BusPacket* p = (BusPacket)(bus_packet + i);
+    for( i = 0; i < MSS_MAX_ADDR; ++i ) {
+        BusPacket* p = &(bus_packet + i)->bus;
         p->slave_addr = slaves[ i ];
         p->packet_type = MSS_BUS;
-        CRC_FOR_BUS( p );
+        CRC_FOR_BUS( (MssPacket*) p );
     }
     int current_slave = 0;
     
@@ -31,16 +32,17 @@ void mss_run_master (const mss_addr* slaves, int slaves_count) {
         send_mss_packet( bus_packet + current_slave );
     
         /* Wait for NRQ, timeout, or data message. */
-        int recv_res = receive_mss_packet( packet, MSS_TIMEOUT );
+        int recv_res = receive_mss_packet( packet, MSS_RECEIVE_TIMEOUT );
         if(
             (recv_res != MSS_OK) || (
                 (recv_res == MSS_OK) &&
-                (( (GenericPacket) packet )->packet_type == MSS_DAT)
+                (packet->generic.packet_type == MSS_DAT)
             )    
         ) {
             /* Unless DAT is broadcast, we expect an ACK packet to appear. */
-            if( ((DataPacket) packet)->dst_addr != MSS_BROADCAST_ADDR )
-                int recv_res = receive_mss_packet( packet, MSS_TIMEOUT );
+            if( packet->dat.dst_addr != MSS_BROADCAST_ADDR ) {
+                receive_mss_packet( packet, MSS_RECEIVE_TIMEOUT );
+            }
         } /* else current slave has nothing to transfer. */
         
         /* Shift to next slave. */

@@ -1,5 +1,6 @@
 
 #include <sys/types.h>
+#include <sys/time.h>
 
 #define RTS_OFF	    0
 #define RTS_ON	    1
