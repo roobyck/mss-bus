@@ -7,7 +7,6 @@
                    (polinominal)
         TEST - kompilowana jest funkcja main testuj¹ca oblicznie CRC dla polinominal x^15 + 1
 */
-#include <stdafx.h>
 #include "crc.h"
 //#define TEST
 //#define GENERATE

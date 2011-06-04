@@ -1,7 +1,7 @@
 
+#include "libser.h"
 #include "packet.h"
-
-const GenericPacket MSS_NRQ_PACKET = { crc('MSS_NRQ',1), MSS_NRQ };
+#include <sys/time.h>
 
 // "Cometh to me, serial port file descriptor, for thou shall serve me well!"
 //       -- Packet Manager of mss-bus lib
@@ -25,6 +25,9 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
     int got_packet = FALSE;
     int type_known = FALSE;
     
+    unsigned char mss_nrq_blabla = MSS_NRQ;
+    GenericPacket MSS_NRQ_PACKET = { crc16(&mss_nrq_blabla,1,0), MSS_NRQ };
+
     tv.tv_sec  = 1;
     tv.tv_usec = 0;
     
@@ -61,29 +64,29 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
     
     // we have received something...
     if( got_packet ) {
-        switch( packet->generic.type ) {
+        switch( packet->generic.packet_type ) {
         
         case MSS_BUS:
-            if( packet->bus.crc == crc(((char*)(pac))+2, 2) )
+            if( packet->bus.crc == crc16(((const unsigned char*)(packet))+2, 2, 0) )
                 return MSS_OK;
             else return MSS_BAD_CRC;
             break;
             
         case MSS_NRQ:
-            if( packet->nrq.crc == MSS_NRQ_PACKET->nrq.crc )
+            if( packet->nrq.crc == MSS_NRQ_PACKET.crc )
                 return MSS_OK;
             else return MSS_BAD_CRC;
             break;
 
         case MSS_DAT:
             if( packet->dat.crc ==
-                crc( ((char*)(pac))+2, 5 + pac->dat.data_len )
+                crc16( ((const unsigned char*)(packet))+2, 5 + packet->dat.data_len, 0) )
                     return MSS_OK;
             else return MSS_BAD_CRC;
             break;
 
         case MSS_ACK:
-            if( packet->ack.crc == crc(((char*)(pac))+2, 2) )
+            if( packet->ack.crc == crc16(((const unsigned char*)(packet))+2, 2, 0) )
                 return MSS_OK;
             else return MSS_BAD_CRC;
             break;            
@@ -104,19 +107,17 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
  */
 int send_mss_packet( MssPacket* packet ) {
     int bytes_total;    
-    switch( packet->generic.type ) { 
+    switch( packet->generic.packet_type ) {
     case MSS_BUS: bytes_total = 4; break;
     case MSS_NRQ: bytes_total = 3; break;
-    case MSS_DAT: bytes_total = 7 + pac->dat.data_len; break;
+    case MSS_DAT: bytes_total = 7 + packet->dat.data_len; break;
     case MSS_ACK: bytes_total = 4; break;
     default: return MSS_WTF;
     }
-
-    // declaration for pointer arithmetic magic purposes
-    char* packet_b = (char*) packet;
     
+    int sent;
     for(
-        int sent = 0;
+        sent = 0;
         bytes_total != sent;
         sent += libser_write( mss_fd, packet+sent, bytes_total-sent )
     ) {

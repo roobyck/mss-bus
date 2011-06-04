@@ -21,9 +21,9 @@
 /** Sent when data was received and it's verification was successful. */
 #define MSS_ACK 0x8
 
-#define CRC_FOR_BUS(pac) ((BusPacket)pac)->crc = crc( ((char*)(pac))+2, 2 )
-#define CRC_FOR_ACK(pac) ((AckPacket)pac)->crc = crc( ((char*)(pac))+2, 2 )
-#define CRC_FOR_DAT(pac) ((DataPacket)pac)->crc = crc( ((char*)(pac))+2, 5+(((DataPacket)pac)->data_len) )
+#define CRC_FOR_BUS(pac) ((pac)->bus.crc = crc16( ((const unsigned char*)(pac))+2, 2, 0 ))
+#define CRC_FOR_ACK(pac) ((pac)->ack.crc = crc16( ((const unsigned char*)(pac))+2, 2, 0 ))
+#define CRC_FOR_DAT(pac) ((pac)->dat.crc = crc16( ((const unsigned char*)(pac))+2, 5+(pac->dat.data_len), 0 ))
 
 /* TODO: sizeof(mss_packet_type)+sizeof(mss_addr) zamiast 2? */ 
 
@@ -63,7 +63,7 @@ typedef struct data_packet {
     mss_addr dst_addr;
     mss_num number;
     mss_size data_len;
-    char[ MSS_DATA_PER_PACKET ] data;
+    char data[ MSS_DATA_PER_PACKET ];
 } DataPacket;
 
 /** Union of all packets. */

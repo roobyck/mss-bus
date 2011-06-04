@@ -2,8 +2,9 @@
 #ifndef _MSS_BUS_H_
 #define _MSS_BUS_H_
 
-#include "./types.h"
-#include "./config.h"
+#include <stddef.h>
+#include "types.h"
+#include "config.h"
 
 /**
  * @return 0 on success.

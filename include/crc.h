@@ -17,4 +17,4 @@
                crc - crc z poprzedniego wywo³ania lub 0.
     Wynik: obliczone crc.
  */
-mss_crc16 crc16( const unsigned char * data, unsigned long size, unsigned short crc = 0 );
+mss_crc16 crc16( const unsigned char * data, unsigned long size, unsigned short crc );
