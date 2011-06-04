@@ -20,5 +20,5 @@
  *    Obliczone CRC.
  */
 mss_crc16 crc16 (const unsigned char * data, unsigned long size,
-                 unsigned short crc);
+                 unsigned short crc = 0);
 
