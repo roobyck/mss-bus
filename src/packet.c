@@ -1,7 +1,8 @@
 
+#include <sys/time.h>
+#include <unistd.h>
 #include "libser.h"
 #include "packet.h"
-#include <sys/time.h>
 
 // "Cometh to me, serial port file descriptor, for thou shall serve me well!"
 //       -- Packet Manager of mss-bus lib
@@ -109,26 +110,44 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
  * @param packet A packet to be send.
  * @return Zero (MSS_OK) or MSS_WTF (-1256251) otherwise.
  */
-int send_mss_packet( MssPacket* packet ) {
+int send_mss_packet (MssPacket* packet)
+{
     int bytes_total;    
-    switch( packet->generic.packet_type ) {
-    case MSS_BUS: bytes_total = 4; break;
-    case MSS_NRQ: bytes_total = 3; break;
-    case MSS_DAT: bytes_total = 7 + packet->dat.data_len; break;
-    case MSS_ACK: bytes_total = 4; break;
-    default: return MSS_WTF;
+
+    switch (packet->generic.packet_type) {
+        case MSS_BUS:
+            bytes_total = 4; break;
+        case MSS_NRQ:
+            bytes_total = 3; break;
+        case MSS_DAT:
+            bytes_total = 7 + packet->dat.data_len; break;
+        case MSS_ACK:
+            bytes_total = 4; break;
+        default:
+            return MSS_WTF;
     }
     
     int sent;
-    for(
-        sent = 0;
-        bytes_total != sent;
-        sent += libser_write( mss_fd, packet+sent, bytes_total-sent )
-    ) {
-        // Why should we code in traditional manner if we can implement
-        // everything inside for declaration?
+    uint8_t bof = MSS_BOF;
+
+    /* send BOF */
+    libser_flush(mss_fd);
+    while (libser_write(mss_fd, &bof, bytes_total) != 1)
+        ;
+    usleep(100);
+
+    /* send rest of the packet */
+    while (bytes_total)
+    {
+        libser_flush(mss_fd);
+
+        sent = libser_write(mss_fd, packet, bytes_total);
+        bytes_total -= sent;
+        packet += sent;
+
+        usleep(100);
     }
-    
+
     return MSS_OK;
 }
 
