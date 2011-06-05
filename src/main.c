@@ -3,6 +3,8 @@
 #include "stdlib.h"
 #include "stdio.h"
 
+void clear_fake_libser();
+
 void check_bus(MssPacket* packet,MssPacket* rpacket) {
 
 	printf("BUS:\n");
@@ -15,6 +17,7 @@ void check_bus(MssPacket* packet,MssPacket* rpacket) {
 	int receive_res = receive_mss_packet( rpacket, 5 );
 	printf("Receiving a packet previously sent, result: %i\n", receive_res);
 	send_mss_packet( rpacket );
+	clear_fake_libser();
 
 	printf("\n");
 }
@@ -33,6 +36,7 @@ void check_nrq(MssPacket* packet,MssPacket* rpacket) {
 	int receive_res = receive_mss_packet( rpacket, 5 );
 	printf("Receiving a packet previously sent, result: %i\n", receive_res);
 	send_mss_packet( rpacket );
+	clear_fake_libser();
 
 	printf("\n");
 }
@@ -54,6 +58,7 @@ void check_dat(MssPacket* packet,MssPacket* rpacket) {
 	int receive_res = receive_mss_packet( rpacket, 5 );
 	printf("Receiving a packet previously sent, result: %i\n", receive_res);
 	send_mss_packet( rpacket );
+	clear_fake_libser();
 
 	printf("\n");
 }

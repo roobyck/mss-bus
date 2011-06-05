@@ -21,7 +21,7 @@ extern int mss_fd;
  *        otherwise. Errors might be MSS_BAD_CRC, MSS_TIMEOUT or MSS_BAD_TYPE.
  */
 int receive_mss_packet( MssPacket* packet, int timeout ) {
-    char c;
+    uint8_t c;
     struct timeval tv;
     int got_packet = FALSE;
     int type_known = FALSE;
@@ -32,7 +32,7 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
     tv.tv_sec  = 1;
     tv.tv_usec = 0;
     
-    char *pak_ptr = (char*) packet;
+    uint8_t *pak_ptr = (char*) packet;
     
     for( ; timeout != 0; --timeout ) {
         libser_read( mss_fd, &c, 1, &tv );
@@ -53,7 +53,7 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
             // make ready to read next byte
             ++pak_ptr;
             
-        } else if( c == (char) MSS_BOF ) {
+        } else if( c == (uint8_t) MSS_BOF ) {
             got_packet = TRUE;
             // at least three more byte must be received
             timeout = 4;
@@ -128,11 +128,11 @@ int send_mss_packet (MssPacket* packet)
     }
     
     int sent;
-    uint8_t bof = MSS_BOF;
+    uint8_t bof = (uint8_t) MSS_BOF;
 
     /* send BOF */
     libser_flush(mss_fd);
-    while (libser_write(mss_fd, &bof, bytes_total) != 1)
+    while (libser_write(mss_fd, &bof, 1) != 1)
         ;
     usleep(100);
 
@@ -143,7 +143,7 @@ int send_mss_packet (MssPacket* packet)
 
         sent = libser_write(mss_fd, packet, bytes_total);
         bytes_total -= sent;
-        packet += sent;
+        packet = ((uint8_t*) packet) + sent;
 
         usleep(100);
     }
