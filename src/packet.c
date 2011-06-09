@@ -39,7 +39,7 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
     for( ; timeout != 0; --timeout ) {
         libser_read( mss_fd, &c, 1, &tv );
 #ifdef HEAVY_DEBUG
-	printf("receive_mss_packet(): Recv: %c\n", c);
+    printf("receive_mss_packet(): Recv: %c\n", c);
 #endif
         if( got_packet ) {
             // store char
@@ -49,21 +49,21 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
             if( timeout == 1 && !type_known ) {
                 type_known = TRUE;
                 if( c == MSS_BUS ) timeout = 2;
-		else if( c == MSS_NRQ ) timeout = 1;
-		else if( c == MSS_DAT ) { timeout = 5; is_dat = TRUE; }
-		else if( c == MSS_ACK ) timeout = 2;
+        else if( c == MSS_NRQ ) timeout = 1;
+        else if( c == MSS_DAT ) { timeout = 5; is_dat = TRUE; }
+        else if( c == MSS_ACK ) timeout = 2;
                 else return MSS_BAD_TYPE;
             } else
             
-	    // if receiving dat packet
-	    if( timeout == 1 && is_dat == TRUE ) {
+        // if receiving dat packet
+        if( timeout == 1 && is_dat == TRUE ) {
 #ifdef HEAVY_DEBUG
-		printf("receive_mss_packet(): data len: %d\n", c);
+        printf("receive_mss_packet(): data len: %d\n", c);
 #endif
-	    	timeout += c;
-		is_dat = FALSE;
-	    }
-	    
+            timeout += c;
+        is_dat = FALSE;
+        }
+        
             // make ready to read next byte
             ++pak_ptr;
             
@@ -84,7 +84,7 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
         switch( packet->generic.packet_type ) {
         
         case MSS_BUS:
-        	CRC_FOR_BUS( packet );
+            CRC_FOR_BUS( packet );
             if( received_crc == packet->bus.crc )
                 return MSS_OK;
             else return MSS_BAD_CRC;
@@ -97,14 +97,14 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
             break;
 
         case MSS_DAT:
-        	CRC_FOR_DAT( packet );
+            CRC_FOR_DAT( packet );
             if( packet->dat.crc == received_crc )
                     return MSS_OK;
             else return MSS_BAD_CRC;
             break;
 
         case MSS_ACK:
-        	CRC_FOR_ACK( packet );
+            CRC_FOR_ACK( packet );
             if( packet->ack.crc == received_crc )
                 return MSS_OK;
             else return MSS_BAD_CRC;

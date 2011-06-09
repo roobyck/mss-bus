@@ -56,9 +56,9 @@ int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
         ) {
 #ifdef DEBUG
             printf( "mss-bus-slave(): Got bus packet for %d (local machine)\n",
-	            packet->bus.slave_addr );
+                packet->bus.slave_addr );
 #endif
-	
+    
             /* Prepare packet... */
             int copy_bytes = data_len - data_sent;
             if( copy_bytes > 10 )
@@ -73,12 +73,11 @@ int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
             memcpy( dat_packet->dat.data, data + data_sent, copy_bytes );
             CRC_FOR_DAT( dat_packet );
             /* Send packet. */
-            send_mss_packet( dat_packet );
-            
+            send_mss_packet( dat_packet ); 
 #ifdef DEBUG
             printf( "mss-bus-slave(): calling send_mss_packet().\n" );
 #endif
-	    
+        
             /* Wait for a response (if SDA) */
             if( target_addr != MSS_BROADCAST_ADDR ) {
                 recv_res = receive_mss_packet( packet, MSS_TIMEOUT );
@@ -91,9 +90,9 @@ int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
                     data_sent += copy_bytes;
 #ifdef DEBUG
                     printf("mss-bus-slave(): Got ACK!\n");
-#endif	    
+#endif        
                 }
-		    
+            
                 /* No ACK ;( */
                 else {
                     --(*packet_count);
@@ -104,7 +103,7 @@ int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
                     free( dat_packet );
 #ifdef DEBUG
                     printf("mss-bus-slave(): No ACK...\n");
-#endif	
+#endif    
                     return data_sent;
                 }
             
@@ -112,10 +111,10 @@ int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
             } else data_sent += copy_bytes;
         }
 #ifdef DEBUG
-	else {
+    else {
             printf("mss-bus-slave(): Got bus for %d.\n", packet->bus.slave_addr);
-	}
-#endif	
+    }
+#endif    
         
     } /* while has data to send */
     
@@ -125,9 +124,9 @@ int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
 }
 
 int mss_slave_recv (mss_addr* sender_addr, char* buffer, int* is_broadcast) {
-    MssPacket* packet = (MssPacket*) malloc( sizeof(MssPacket) );
-    
+    int bytes_received;
     int loop = 1;
+    MssPacket* packet = (MssPacket*) malloc( sizeof(MssPacket) );
     
     /* Keep receiving until received a packet to local machine. */
     while( loop ) {
@@ -165,7 +164,7 @@ int mss_slave_recv (mss_addr* sender_addr, char* buffer, int* is_broadcast) {
     } /* while( loop ) */
     
     /* Return. */
-    int bytes_received = packet->dat.data_len;
+    bytes_received = packet->dat.data_len;
     free( packet );
     return bytes_received;
 }
