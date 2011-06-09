@@ -1,6 +1,7 @@
 
 #include <sys/time.h>
 #include <unistd.h>
+#include <stdio.h>
 #include "libser.h"
 #include "packet.h"
 
@@ -25,6 +26,7 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
     struct timeval tv;
     int got_packet = FALSE;
     int type_known = FALSE;
+    int is_dat = FALSE;
     
     unsigned char mss_nrq_blabla = MSS_NRQ;
     GenericPacket MSS_NRQ_PACKET = { crc16(&mss_nrq_blabla,1,0), MSS_NRQ };
@@ -36,6 +38,9 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
     
     for( ; timeout != 0; --timeout ) {
         libser_read( mss_fd, &c, 1, &tv );
+#ifdef HEAVY_DEBUG
+	printf("receive_mss_packet(): Recv: %c\n", c);
+#endif
         if( got_packet ) {
             // store char
             *pak_ptr = c;
@@ -43,13 +48,22 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
             // if it's time for packet type recognition...
             if( timeout == 1 && !type_known ) {
                 type_known = TRUE;
-                if( c == MSS_BUS ) timeout = 2;  else
-                if( c == MSS_NRQ ) timeout = 1;  else
-                if( c == MSS_DAT ) timeout = 15; else
-                if( c == MSS_ACK ) timeout = 2;
+                if( c == MSS_BUS ) timeout = 2;
+		else if( c == MSS_NRQ ) timeout = 1;
+		else if( c == MSS_DAT ) { timeout = 5; is_dat = TRUE; }
+		else if( c == MSS_ACK ) timeout = 2;
                 else return MSS_BAD_TYPE;
-            }
+            } else
             
+	    // if receiving dat packet
+	    if( timeout == 1 && is_dat == TRUE ) {
+#ifdef HEAVY_DEBUG
+		printf("receive_mss_packet(): data len: %d\n", c);
+#endif
+	    	timeout += c;
+		is_dat = FALSE;
+	    }
+	    
             // make ready to read next byte
             ++pak_ptr;
             

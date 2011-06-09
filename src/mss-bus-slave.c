@@ -4,6 +4,12 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define DEBUG
+
+#ifdef DEBUG
+#include <stdio.h>
+#endif
+
 /** Local machine address. */
 mss_addr local_addr;
 
@@ -34,6 +40,10 @@ int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
     dat_packet->dat.src_addr = local_addr;
     dat_packet->dat.dst_addr = target_addr;
     
+#ifdef DEBUG
+    printf( "mss-bus-slave(): Preparing send operation. Waiting for bus.\n" ); 
+#endif    
+    
     /* Keep sending until all data was sent. */
     while( data_sent != data_len ) {
         int recv_res = receive_mss_packet( packet, MSS_TIMEOUT );
@@ -44,6 +54,11 @@ int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
             (packet->generic.packet_type == MSS_BUS) &&
             (packet->bus.slave_addr == local_addr)
         ) {
+#ifdef DEBUG
+            printf( "mss-bus-slave(): Got bus packet for %d (local machine)\n",
+	            packet->bus.slave_addr );
+#endif
+	
             /* Prepare packet... */
             int copy_bytes = data_len - data_sent;
             if( copy_bytes > 10 )
@@ -60,14 +75,25 @@ int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
             /* Send packet. */
             send_mss_packet( dat_packet );
             
+#ifdef DEBUG
+            printf( "mss-bus-slave(): calling send_mss_packet().\n" );
+#endif
+	    
             /* Wait for a response (if SDA) */
             if( target_addr != MSS_BROADCAST_ADDR ) {
                 recv_res = receive_mss_packet( packet, MSS_TIMEOUT );
-                
+#ifdef DEBUG
+                printf("mss-bus-slave(): Recv res is %d; packet type is %d\n",recv_res,packet->generic.packet_type);
+#endif
+ 
                 /* Got ACK */
-                if( (recv_res == MSS_OK) && (packet->generic.packet_type == MSS_ACK) )
+                if( (recv_res == MSS_OK) && (packet->generic.packet_type == MSS_ACK) ) {
                     data_sent += copy_bytes;
-    
+#ifdef DEBUG
+                    printf("mss-bus-slave(): Got ACK!\n");
+#endif	    
+                }
+		    
                 /* No ACK ;( */
                 else {
                     --(*packet_count);
@@ -76,12 +102,20 @@ int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
                             ne do skutku). */
                     free( packet );
                     free( dat_packet );
+#ifdef DEBUG
+                    printf("mss-bus-slave(): No ACK...\n");
+#endif	
                     return data_sent;
                 }
             
             /* SDN - no waiting needed, just increase data counter. */
             } else data_sent += copy_bytes;
         }
+#ifdef DEBUG
+	else {
+            printf("mss-bus-slave(): Got bus for %d.\n", packet->bus.slave_addr);
+	}
+#endif	
         
     } /* while has data to send */
     
@@ -91,9 +125,9 @@ int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
 }
 
 int mss_slave_recv (mss_addr* sender_addr, char* buffer, int* is_broadcast) {
-    int bytes_received;
-    int loop = 1;
     MssPacket* packet = (MssPacket*) malloc( sizeof(MssPacket) );
+    
+    int loop = 1;
     
     /* Keep receiving until received a packet to local machine. */
     while( loop ) {
@@ -131,7 +165,7 @@ int mss_slave_recv (mss_addr* sender_addr, char* buffer, int* is_broadcast) {
     } /* while( loop ) */
     
     /* Return. */
-    bytes_received = packet->dat.data_len;
+    int bytes_received = packet->dat.data_len;
     free( packet );
     return bytes_received;
 }
