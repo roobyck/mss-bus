@@ -7,32 +7,36 @@
 
 int keep_master_running;
 
-void mss_run_master (const mss_addr* slaves, int slaves_count) {
+void mss_run_master (const mss_addr* slaves, int slaves_count)
+{
+    int i, current_slave;
+    MssPacket *packet, *bus_packet;
+
     /* set up working environment */
     keep_master_running = 1;
 
     mss_init();
     
-    MssPacket* packet = (MssPacket*) malloc( sizeof(MssPacket) );
+    packet = (MssPacket*) malloc( sizeof(MssPacket) );
     /* Array of BUSes to pre-calculate crc checksums. */
-    MssPacket* bus_packet = (MssPacket*) malloc( slaves_count * sizeof(MssPacket) );
-    int i;
+    bus_packet = (MssPacket*) malloc( slaves_count * sizeof(MssPacket) );
     for( i = 0; i < MSS_MAX_ADDR; ++i ) {
         BusPacket* p = &(bus_packet + i)->bus;
         p->slave_addr = slaves[ i ];
         p->packet_type = MSS_BUS;
         CRC_FOR_BUS( (MssPacket*) p );
     }
-    int current_slave = 0;
+    current_slave = 0;
     
     /* main loop */
     while( keep_master_running ) {
-        
+        int recv_res;
+
         /* Send BUS to current slave. */
         send_mss_packet( bus_packet + current_slave );
     
         /* Wait for NRQ, timeout, or data message. */
-        int recv_res = receive_mss_packet( packet, MSS_RECEIVE_TIMEOUT );
+        recv_res = receive_mss_packet( packet, MSS_RECEIVE_TIMEOUT );
         if(
             (recv_res != MSS_OK) || (
                 (recv_res == MSS_OK) &&
