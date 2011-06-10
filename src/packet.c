@@ -5,6 +5,8 @@
 #include "libser.h"
 #include "packet.h"
 
+const GenericPacket MSS_NRQ_PACKET = { 32771, MSS_NRQ };
+
 // "Cometh to me, serial port file descriptor, for thou shall serve me well!"
 //       -- Packet Manager of mss-bus lib
 extern int mss_fd;
@@ -27,14 +29,11 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
     int got_packet = FALSE;
     int type_known = FALSE;
     int is_dat = FALSE;
-    
-    unsigned char mss_nrq_blabla = MSS_NRQ;
-    GenericPacket MSS_NRQ_PACKET = { crc16(&mss_nrq_blabla,1,0), MSS_NRQ };
 
     tv.tv_sec  = 1;
     tv.tv_usec = 0;
     
-    uint8_t *pak_ptr = (char*) packet;
+    uint8_t *pak_ptr = (unsigned char*) packet;
     
     for( ; timeout != 0; --timeout ) {
         libser_read( mss_fd, &c, 1, &tv );
@@ -119,8 +118,7 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
 }
 
 /*
- * Sends a packet. This functions blocks until a packet is send, which will
- * happen as soon as local slave will gain access to the bus.
+ * Sends a packet.
  * @param packet A packet to be send.
  * @return Zero (MSS_OK) or MSS_WTF (-1256251) otherwise.
  */

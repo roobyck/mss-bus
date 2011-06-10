@@ -25,8 +25,6 @@
 #define CRC_FOR_ACK(pac) ((pac)->ack.crc = crc16( ((const unsigned char*)(pac))+2, 2, 0 ))
 #define CRC_FOR_DAT(pac) ((pac)->dat.crc = crc16( ((const unsigned char*)(pac))+2, 5+(pac->dat.data_len), 0 ))
 
-/* TODO: sizeof(mss_packet_type)+sizeof(mss_addr) zamiast 2? */ 
-
 /**
  * Generic packet type, containing minimal set of data structures required to
  * be send over the mss network. Other packet types must include struct
@@ -64,7 +62,7 @@ typedef struct data_packet {
     mss_num number;
     mss_size data_len;
     char data[ MSS_DATA_PER_PACKET ];
-} DataPacket;
+} __attribute__((packed)) DataPacket;
 
 /** Union of all packets. */
 typedef union mss_packet {
@@ -75,10 +73,9 @@ typedef union mss_packet {
 } MssPacket;
 
 
-/* Constant packets. */
-
+/* NRQ has fixed values, thus can be used as a constant (bear in mind that
+ * it is of type GenericPacket, not MssPacket). */
 extern const GenericPacket MSS_NRQ_PACKET;
-
 
 /* Error codes. */
 
@@ -103,8 +100,7 @@ extern const GenericPacket MSS_NRQ_PACKET;
 int receive_mss_packet( MssPacket* packet, int timeout );
 
 /**
- * Sends a packet. This functions blocks until a packet is send, which will
- * happen as soon as local slave will gain access to the bus.
+ * Sends a packet.
  * @param packet A packet to be send.
  * @return Zero (MSS_OK).
  */
