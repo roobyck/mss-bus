@@ -2,8 +2,8 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
-#define RTS_OFF	    0
-#define RTS_ON	    1
+#define RTS_OFF       0
+#define RTS_ON        1
 
 int libser_open (const char *device, int speed);
 void libser_close (int fd);

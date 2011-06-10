@@ -7,15 +7,18 @@
 
 int keep_master_running;
 
-void mss_run_master (const mss_addr* slaves, int slaves_count)
+extern int mss_fd;
+
+int mss_run_master (const mss_addr* slaves, int slaves_count)
 {
     int i, current_slave;
     MssPacket *packet, *bus_packet;
 
+    if( mss_fd == -1 )
+        return MSS_UNINITIALIZED;
+    
     /* set up working environment */
     keep_master_running = 1;
-
-    mss_init();
     
     packet = (MssPacket*) malloc( sizeof(MssPacket) );
     /* Array of BUSes to pre-calculate crc checksums. */
@@ -59,6 +62,8 @@ void mss_run_master (const mss_addr* slaves, int slaves_count)
     /* clean up */
     free( packet );
     free( bus_packet );
+    
+    return MSS_OK;
 }
 
 void mss_stop_master (void)

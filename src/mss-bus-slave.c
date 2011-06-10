@@ -10,6 +10,8 @@
 #include <stdio.h>
 #endif
 
+extern int mss_fd;
+
 /** Local machine address. */
 mss_addr local_addr;
 
@@ -19,14 +21,21 @@ mss_num incoming_count[ MSS_MAX_ADDR + 1 ];
 /** Contains counters which are used to mark outcoming data packets. */
 mss_num outcoming_count[ MSS_MAX_ADDR + 1 ];
 
-void mss_init_slave (mss_addr addr) {
-    mss_init();
+int mss_init_slave (mss_addr addr) {
+    if( mss_fd == -1 )
+        return MSS_UNINITIALIZED;
+    
     local_addr = addr;
     memset( incoming_count, 0, (MSS_MAX_ADDR + 1) * sizeof(mss_num) );
     memset( outcoming_count, 0, (MSS_MAX_ADDR + 1) * sizeof(mss_num) );
+    
+    return MSS_OK;
 }
 
 int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
+    if( mss_fd == -1 )
+        return MSS_UNINITIALIZED;
+        
     /* Prepare for sending... */
     size_t data_sent = 0;
     MssPacket* packet = (MssPacket*) malloc( sizeof(MssPacket) );
@@ -124,6 +133,9 @@ int mss_slave_send (mss_addr target_addr, const char* data, size_t data_len) {
 }
 
 int mss_slave_recv (mss_addr* sender_addr, char* buffer, int* is_broadcast) {
+    if( mss_fd == -1 )
+        return MSS_UNINITIALIZED;
+        
     int bytes_received;
     int loop = 1;
     MssPacket* packet = (MssPacket*) malloc( sizeof(MssPacket) );

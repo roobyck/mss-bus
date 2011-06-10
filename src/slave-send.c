@@ -10,14 +10,15 @@
         printf("Liczba podanych parametrow jest ZLA!!!\n");
         return 0;
     }
- 	
+     
     int loc_addr = atoi(argv[1]);
     int rem_addr = atoi(argv[2]);
-	
+    
+    mss_init( "/dev/ttyS1", B9600 );
     mss_init_slave( loc_addr );
-	
+    
     printf("Slave-sender estabilished, transmission: %d=>%d\n", loc_addr, rem_addr);
-	
+    
     int sent = 0;
     int len = strlen(argv[3]);
     

@@ -80,11 +80,16 @@ extern const GenericPacket MSS_NRQ_PACKET;
 /* Error codes. */
 
 /** No error. */
+#ifndef MSS_OK
 #define MSS_OK           0
+#endif
+
 /** Bad checksum. */
 #define MSS_BAD_CRC     -1
+
 /** Timeout reached. */
 #define MSS_TIMEOUT     -2
+
 /** Unrecognised type of frame. */
 #define MSS_BAD_TYPE    -3
 

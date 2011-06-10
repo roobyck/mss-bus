@@ -11,20 +11,17 @@
 #include "libser.h"
 #include "mss-bus.h"
 
-int mss_is_initialized = FALSE;
 int mss_fd = -1;
 
-int mss_init () {
-    if( !mss_is_initialized ) {
-        mss_fd = libser_open( "/dev/ttyS1", B9600 );
-        if( mss_fd < 0 ) return -1;
-        mss_is_initialized = TRUE;
+int mss_init (const char *device, int speed) {
+    if( mss_fd < 0 ) {
+        mss_fd = libser_open( device, speed );
+        if( mss_fd < 0 ) return MSS_UNINITIALIZED;
     }
-    return 0;
+    return MSS_OK;
 }
 
 void mss_close () {
-    mss_is_initialized = FALSE;
     libser_close( mss_fd );
     mss_fd = -1;
 }

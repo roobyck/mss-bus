@@ -3,16 +3,25 @@
 #define _MSS_BUS_H_
 
 #include <stddef.h>
+#include <termios.h>
 #include "types.h"
 #include "config.h"
 
-/**
- * @return 0 on success.
- */
-int mss_init ();
+/** No error. */
+#define MSS_OK               0
+
+/** Library not initialized. */
+#define MSS_UNINITIALIZED   -4
 
 /**
- *
+ * Must be called before any other usage of library occurs. Initializes serial
+ * port.
+ * @return MSS_OK on success, negative value otherwise.
+ */
+int mss_init (const char *device, int speed);
+
+/**
+ * Closes serial port.
  */
 void mss_close ();
 
@@ -24,8 +33,10 @@ void mss_close ();
  * @param slaves A pointer to array of slaves managed by the master. Each entry
  *        contains address of one slave in the network.
  * @param slave_count Amount of slaves in slaves.
+ * @return MSS_OK on success (when master was closed), or MSS_UNINITIALIZED if
+ *        library is not initialized.
  */
-void mss_run_master (const mss_addr* slaves, int slaves_count);
+int mss_run_master (const mss_addr* slaves, int slaves_count);
 
 /**
  * Stops execution of mss-master.
@@ -34,8 +45,10 @@ void mss_stop_master();
 
 /**
  * Initializes slave on local machine and assigns given address to it.
+ * @return MSS_OK on success, or MSS_UNINITIALIZED if library is not
+ *        initialized.
  */
-void mss_init_slave (mss_addr addr);
+int mss_init_slave (mss_addr addr);
 
 /**
  * Performs send operation over mss network. mss_slave_send blocks until a
@@ -47,7 +60,8 @@ void mss_init_slave (mss_addr addr);
  * @param data Buffer containing data to be send.
  * @param data_len Number of bytes to be send.
  * @return Number of bytes sent. If all bytes were transmitted successfuly,
- *         return value equals data_len.
+ *         return value equals data_len. MSS_UNINITIALZED is returned upon
+ *         error caused by library not initialized.
  */
 int mss_slave_send (mss_addr addr, const char* data, size_t data_len);
 
@@ -60,7 +74,8 @@ int mss_slave_send (mss_addr addr, const char* data, size_t data_len);
  * @param buffer Message is written to the buffer.
  * @param is_broadcast Is set, if transmission was broadcast message; otherwise
  *        it is cleared.
- * @return Number of data bytes received.
+ * @return Number of data bytes received. MSS_UNINITIALZED is returned upon
+ *         error caused by library not initialized.
  */
 int mss_slave_recv (mss_addr* sender_addr, char* buffer, int* is_broadcast);
 

@@ -30,8 +30,8 @@ int receive_mss_packet( MssPacket* packet, int timeout ) {
     int type_known = FALSE;
     int is_dat = FALSE;
 
-    tv.tv_sec  = 1;
-    tv.tv_usec = 0;
+    tv.tv_sec  = MSS_LIBSER_WAIT_SEC;
+    tv.tv_usec = MSS_LIBSER_WAIT_USEC;
     
     uint8_t *pak_ptr = (unsigned char*) packet;
     
